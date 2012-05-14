@@ -20,13 +20,13 @@
 
 ;; this module provides macros for rest like handlers
 
-(defvar *rest-handler-alist* nil
+(defparameter *rest-handler-alist* nil
   "An alist of \(URI acceptor-names function) lists defined by
 DEFINE-REST-HANDLER.")
 
 (defmacro define-rest-handler (description lambda-list &body body)
   (when (atom description)
-    (setq description (list description)))
+    (setf description (list description)))
   (destructuring-bind (name &key uri args (acceptor-names t)
                             (default-parameter-type ''string)
                             (default-request-type :both))
@@ -36,7 +36,7 @@ DEFINE-REST-HANDLER.")
                (list
                 (with-rebinding (uri)
                   `(progn
-                     (setq *rest-handler-alist*
+                     (setf *rest-handler-alist*
                            (substitute-if
                             (list ,uri ,acceptor-names ',name)
                             (lambda (list)
@@ -51,7 +51,7 @@ DEFINE-REST-HANDLER.")
                                                              default-parameter-type
                                                              default-request-type)))
          ,(if args
-              `(cl-ppcre:register-groups-bind ,args
+              `(register-groups-bind ,args
                    (,uri (request-uri*))
                  ,@body)
               `(progn ,@body))))))
@@ -63,7 +63,7 @@ defined with DEFINE-REST-HANDLER, if there is one."
      when (and (or (eq acceptor-names t)
                    (find (acceptor-name *acceptor*) acceptor-names :test #'eq))
                (cond ((stringp uri)
-                      (let ((scanner (cl-ppcre:create-scanner uri)))
-                        (cl-ppcre:scan scanner (script-name request))))
+                      (let ((scanner (create-scanner uri)))
+                        (scan scanner (script-name request))))
                      (t (funcall uri request))))
      do (return rest-handler)))
