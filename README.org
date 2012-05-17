@@ -67,6 +67,33 @@
    (planet-git:shutdown)
    #+END_SRC
 
+
+*** Local Development Deployment
+    Add a git user,
+
+    #+BEGIN_SRC shell
+    adduser git
+    #+END_SRC
+
+    Now as the git user install quicklisp and link in the development
+    version.
+
+    #+BEGIN_SRC shell
+    sbcl
+    #+END_SRC
+
+
+    #+BEGIN_SRC common-lisp
+    #+END_SRC
+
+    #+BEGIN_SRC shell
+    mkdir -p ~/.local/share/common-lisp/source/
+    cd ~/.local/share/common-lisp/source/
+    ln -s ~user/projects/planet-git .
+    cd -
+    #+END_SRC
+
+
 *** Definitions
 
     Pages, return complete html pages
