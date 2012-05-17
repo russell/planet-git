@@ -25,14 +25,6 @@
 (require :postmodern)
 (require :cl-ppcre)
 
-
-;;; Global Config
-
-(defvar *repository-directory* #P"/tmp/")
-(defvar *git-user-homedir* #P"/home/git/")
-(defvar *git-shell-path* #P"/home/git/")
-(defvar *git-ssh-host* "git@localhost")
-
 ;;; Webserver
 
 (defun resource-path (path)

@@ -28,12 +28,11 @@
                #:css-lite
                #:database-migrations
                #:parenscript
-               #:unix-options
                #:md5)
   :components ((:static-file "planet-git.asd")
-               (:module "src" 
+               (:module "src"
                         :components ((:file "package")
-                                     (:file "config")
+                                     (:file "config" :depends-on ("package"))
                                      (:file "compat")
                                      (:file "utils")
                                      (:file "easy-handlers")

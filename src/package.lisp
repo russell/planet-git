@@ -55,4 +55,5 @@
    #:*git-ssh-host*
    #:create-tables
    #:startup
-   #:shutdown))
+   #:shutdown
+   #:main))
