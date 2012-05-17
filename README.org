@@ -86,6 +86,7 @@
     Quicklisp needs to be installed into ~/.quicklisp so that there
     won't be any problems if a user is created with the name
     Quicklisp.
+
     #+BEGIN_SRC common-lisp
     (quicklisp-quickstart:install :path ".quicklisp/")
     #+END_SRC
