@@ -44,14 +44,14 @@
                                            "Add Repository"))))
 	    (let ((repositories (select-dao
 				 'repository (:= 'owner-id (slot-value user 'id)))))
-	      (log-message *lisp-warnings-log-level* "Repositories ~a" repositories)
+	      (log-message* *lisp-warnings-log-level* "Repositories ~a" repositories)
 	      (labels ((repository-fragment (repos)
 			 (let* ((repo (car repos)) (rest (cdr repos))
 				(visible (or (slot-value repo 'public)
 					     (equal (slot-value user 'username)
 						    (when (loginp) (slot-value (loginp) 'username)))))
 				(public (repository-public repo)))
-			   (log-message *lisp-warnings-log-level* "Repository ~a" repo)
+			   (log-message* *lisp-warnings-log-level* "Repository ~a" repo)
 			   (when (and repo (or visible is-current-user))
 			     (repository-item-fragment (slot-value repo 'name)
 						       username

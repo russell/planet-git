@@ -133,7 +133,7 @@ found to the global variable *FIELD-ERRORS*."
                (validate-field-list (assoc-default (quote ,(car form)) *forms*))
                (if (= (hash-table-count *form-errors*) 0)
                    (progn
-                     (log-message
+                     (log-message*
                       *lisp-warnings-log-level*
                       "Form submitted: ~s" ,form-name)
                      ,@(cdr form)
@@ -153,13 +153,13 @@ then-form; otherwise, the values returned by the else-form."
      (when (post-parameter (compute-real-form-name (caar *forms*)))
        (validate-field-list (cdar *forms*)))
 
-     (log-message
+     (log-message*
       *lisp-warnings-log-level*
       "Form errors: ~s" (hash-table-count *form-errors*))
      (if (and (post-parameter (compute-real-form-name (caar *forms*)))
               (= (hash-table-count *form-errors*) 0))
          (progn
-           (log-message
+           (log-message*
             *lisp-warnings-log-level*
             "Form submitted: ~s" (caar *forms*))
            ,then)
