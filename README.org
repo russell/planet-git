@@ -89,7 +89,11 @@
 
     #+BEGIN_SRC common-lisp
     (quicklisp-quickstart:install :path ".quicklisp/")
+    (quit)
     #+END_SRC
+
+    Now development a development copy of planet-git is linked in for
+    ASDF to find.
 
     #+BEGIN_SRC shell
     mkdir -p ~/.local/share/common-lisp/source/
@@ -97,7 +101,6 @@
     ln -s ~user/projects/planet-git .
     cd -
     #+END_SRC
-
 
 *** Definitions
 
