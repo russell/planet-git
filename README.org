@@ -79,11 +79,15 @@
     version.
 
     #+BEGIN_SRC shell
-    sbcl
+    curl -O http://beta.quicklisp.org/quicklisp.lisp
+    sbcl --load quicklisp.lisp
     #+END_SRC
 
-
+    Quicklisp needs to be installed into ~/.quicklisp so that there
+    won't be any problems if a user is created with the name
+    Quicklisp.
     #+BEGIN_SRC common-lisp
+    (quicklisp-quickstart:install :path ".quicklisp/")
     #+END_SRC
 
     #+BEGIN_SRC shell
