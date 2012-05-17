@@ -22,6 +22,8 @@
 ;;; Reenable the debugger
 (sb-ext:enable-debugger)
 
+;; Enable debug
+(sb-ext:restrict-compiler-policy 'debug 3)
 
 (defun find-quicklisp ()
   "try and find quicklisp"
@@ -68,7 +70,7 @@
                          '(((#\c "config") "FILENAME" "path to the config file")))
     (quit :unix-status 1))
   (if config
-    (main config)
+    (main config :debug t)
     (progn
       (print-usage-summary "Usage:~%~@{~A~%~}"
                            '(((#\c "config") "FILENAME" "path to the config file")))

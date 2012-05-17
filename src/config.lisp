@@ -84,7 +84,7 @@
     (:git-ssh-host *git-ssh-host*)
     (:git-shell-path *git-shell-path*)))
 
-(defun initialize-parameters (&optional path)
+(defun initialize-parameters (&key path)
     (loop
        :for (keyword variable)
        :in *user-configurable-parameters*
@@ -127,20 +127,21 @@ waits for a connection indefinitely."
       (sb-bsd-sockets:socket-close client-socket)
       (sb-bsd-sockets:socket-close socket))))
 
-(defun startup (&optional config-path)
+(defun startup (&key config-path debug no-config)
   "startup the application either loading the configuration from the
 specified CONFIG-PATH of from the project root."
-  (initialize-parameters config-path) ;; TODO i think this should be
-                                      ;; moved out because otherwise
-                                      ;; there is no way to prevent
-                                      ;; reconfiguration on restart
+  (unless no-config (initialize-parameters :path config-path))
+  (if debug
+      (setf *catch-errors-p* nil)
+      (setf *catch-errors-p* t))
+  (format t ";; Connecting to database.~%")
   (connect-toplevel *db-name*
                     *db-user-name*
                     *db-password*
                     *db-host*
                     :port *db-port*)
   (create-tables)
-  (setf *httpd* (start (make-instance 'acceptor
+  (setf *httpd* (start (make-instance 'easy-acceptor
                                       :port *webserver-port*)))
   (format t ";; Hunchentoot started at port: ~s.~%" *webserver-port*)
   *httpd*)
@@ -154,8 +155,8 @@ specified CONFIG-PATH of from the project root."
   (stop *httpd*)
   (format t "done.~%"))
 
-(defun main (config-path)
-  (startup config-path)
+(defun main (config-path &key debug)
+  (startup :config-path config-path)
   (setf *swank-server* (when *swank-enabled*
                          (swank:create-server :port *swank-port*
                                               :style :spawn :dont-close t)))
