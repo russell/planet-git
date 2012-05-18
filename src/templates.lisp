@@ -49,9 +49,7 @@ which it is in fact.  Useful for defining syntactic constructs"
 	     (:title "Planet Git - " ,title)
 	     (:link :rel "stylesheet" :href "/static/css/bootstrap.css")
 	     (:script :type "text/javascript" :src "/static/js/jquery.js")
-	     (:script :type "text/javascript" :src "/static/js/bootstrap-transition.js")
-	     (:script :type "text/javascript" :src "/static/js/bootstrap-modal.js")
-	     (:script :type "text/javascript" :src "/static/js/bootstrap-tab.js")
+	     (:script :type "text/javascript" :src "/static/js/bootstrap.js")
 	     (:style :type "text/css"
 		     (str
 		      (css
@@ -165,16 +163,14 @@ which it is in fact.  Useful for defining syntactic constructs"
                                "Login"
                                :buttons ((:a :href "#" :class "btn btn-primary"
                                              :onclick (ps:ps-inline
-                                                       (ps:@
-                                                        (ps:chain ($ "#login-modal-form")
-                                                                  (submit))))
+                                                       ($ "#login-modal-form"
+                                                                  (submit)))
 
                                              "Login")
                                          (:a :href "#" :class "btn"
                                              :onclick (ps:ps-inline
-                                                       (ps:@
-                                                        (ps:chain ($ "#login-modal")
-                                                                  (modal "hide"))))
+                                                       ($ "#login-modal"
+                                                                  (modal "hide")))
                                              "Cancel")))
                          (:form :id "login-modal-form" :class "login-form"
                                 :action "/login" :method "post"
@@ -188,7 +184,18 @@ which it is in fact.  Useful for defining syntactic constructs"
                                 (:input :type "submit"
                                         :style "visibility: hidden;"
                                         :name "create"
-                                        :value "Create")))
+                                        :value "Create"))
+                         (:script :type "text/javascript"
+                                  (str
+                                   (ps:ps
+                                     (doc-ready
+                                      ($ "#login-modal"
+                                         (on "shown"
+                                             (lambda ()
+                                               (console.log "hello")
+                                               ($ "#login-modal-form input[name=\"login\"]"
+                                                  (focus)))))))))
+)
 				       (:li (:a :href "/register" "Register"))
 				       (:li (:a :href "/login"
                                 :data-target "#login-modal"

@@ -28,22 +28,33 @@
                #:css-lite
                #:database-migrations
                #:parenscript
+               #:paren-files
                #:md5)
   :components ((:static-file "planet-git.asd")
                (:module "src"
-                        :components ((:file "package")
-                                     (:file "config" :depends-on ("package"))
-                                     (:file "compat")
-                                     (:file "utils")
-                                     (:file "easy-handlers")
-                                     (:file "rest")
-                                     (:file "templates")
-                                     (:file "forms")
-                                     (:file "validators")
-                                     (:module "views" :depends-on ("forms" "validators" "templates" "easy-handlers" "rest")
-                                              :components
-                                              ((:file "home")
-                                               (:file "user")
-                                               (:file "registration")
-                                               (:file "repository")))
-                                     (:file "planet-git" :depends-on ("views"))))))
+                        :components
+                        ((:file "package")
+                         (:file "config" :depends-on ("package"))
+                         (:file "compat")
+                         (:file "utils")
+                         (:file "easy-handlers")
+                         (:file "rest")
+                         (:file "templates")
+                         (:file "forms")
+                         (:file "validators")
+                         (:module "paren"
+                                  :depends-on ("package")
+                                  :components
+                                  ((:file "jquery")))
+                         (:module "views"
+                                  :depends-on ("forms"
+                                               "validators"
+                                               "templates"
+                                               "easy-handlers"
+                                               "rest")
+                                  :components
+                                  ((:file "home")
+                                   (:file "user")
+                                   (:file "registration")
+                                   (:file "repository")))
+                         (:file "planet-git" :depends-on ("views"))))))

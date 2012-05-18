@@ -44,6 +44,8 @@
                 #:with-html-output-to-string)
   (:import-from #:css-lite
                 #:css)
+  (:import-from #:parenscript
+                #:defpsmacro)
   (:import-from #:md5
                 #:md5sum-sequence)
   ;; hunchentoot:shutdown is shadowed by ours
