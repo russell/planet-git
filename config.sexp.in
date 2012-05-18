@@ -8,5 +8,6 @@
  (:db-name . planet_git)
  (:db-user-name . "gitui")
  (:db-password . "oenRTe90u")
- (:repository-path . "/home/russel/tmp/planet-git/")
- (:git-ssh-host . "git@marvin.home"))
+ (:git-user-homedir . "/home/git/")
+ (:git-ssh-host . "git@marvin.home")
+ (:git-shell-path . "/usr/bin/git-shell.lisp"))

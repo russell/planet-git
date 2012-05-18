@@ -1,0 +1,77 @@
+#!/usr/bin/sbcl --script
+;;; -*- Mode: Lisp; Syntax: COMMON-LISP; Base: 10 -*-
+
+;; Planet-Git a source code repository manager.
+;; Copyright (C) 2011-2012 Russell Sim <russell.sim@gmail.com>
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;;; develop.lisp
+
+;;; Reenable the debugger
+(sb-ext:enable-debugger)
+
+;; Enable debug
+(sb-ext:restrict-compiler-policy 'debug 3)
+
+(defun find-quicklisp ()
+  "try and find quicklisp"
+  (car
+   (handler-bind
+       ((file-error
+         (lambda (c)
+           (declare (ignore c))
+           (invoke-restart 'skip-path))))
+     (loop :for path
+        :in (mapcar (lambda (path)
+                      (merge-pathnames (make-pathname :directory (list :relative path))
+                                       (user-homedir-pathname)))
+                    (list "quicklisp" ".quicklisp"))
+        :when (restart-case
+                  (truename path)
+                (skip-path () nil))
+        :collect path))))
+
+;; ignore the system asdf it is usually be out of date.
+;#-:asdf
+;(load (merge-pathnames ".quicklisp/asdf.lisp" (user-homedir-pathname)))
+
+;#-quicklisp
+(let ((quicklisp-init (merge-pathnames (make-pathname :name "setup"
+                                                      :type "lisp")
+                                       (find-quicklisp))))
+  (if (probe-file quicklisp-init)
+    (load quicklisp-init)
+    (error "Can't Find Quicklisp")))
+
+(ql:quickload 'unix-options)
+(use-package 'unix-options)
+
+(ql:quickload 'swank)
+(ql:quickload 'planet-git)
+(use-package 'planet-git)
+
+
+(with-cli-options ()
+  (help &parameters config)
+  (when help
+    (print-usage-summary "Usage:~%~@{~A~%~}"
+                         '(((#\c "config") "FILENAME" "path to the config file")))
+    (quit :unix-status 1))
+  (if config
+    (main config :debug t)
+    (progn
+      (print-usage-summary "Usage:~%~@{~A~%~}"
+                           '(((#\c "config") "FILENAME" "path to the config file")))
+      (cl-user::quit :unix-status 1))))

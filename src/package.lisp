@@ -17,7 +17,7 @@
 ;;;; package.lisp
 (in-package :cl-user)
 
-(defpackage #:planet-git
+(defpackage :planet-git
   (:use #:cl
         #:hunchentoot
         #:postmodern)
@@ -27,6 +27,7 @@
   (:import-from #:chunga
                 #:as-keyword)
   (:import-from #:cl-git
+                #:ensure-git-repository-exist
                 #:git-commit-author
                 #:git-commit-message
                 #:git-reference-listall
@@ -45,25 +46,13 @@
                 #:css)
   (:import-from #:md5
                 #:md5sum-sequence)
-  (:import-from #:postmodern
-                #:connect-toplevel
-                #:dao-class
-                #:dao-table-definition
-                #:db-null
-                #:execute
-                #:get-dao
-                #:insert-dao
-                #:query
-                #:select-dao
-                #:table-exists-p
-                #:delete-dao)
   ;; hunchentoot:shutdown is shadowed by ours
   (:shadow #:shutdown)
   (:export
    #:*git-ssh-host*
-   #:*repository-directory*
    #:*git-user-homedir*
    #:*git-ssh-host*
    #:create-tables
    #:startup
-   #:shutdown))
+   #:shutdown
+   #:main))

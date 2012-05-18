@@ -25,14 +25,6 @@
 (require :postmodern)
 (require :cl-ppcre)
 
-
-;;; Global Config
-
-(defvar *repository-directory* #P"/tmp/")
-(defvar *git-user-homedir* #P"/home/git/")
-(defvar *git-shell-path* #P"/home/git/")
-(defvar *git-ssh-host* "git@localhost")
-
 ;;; Webserver
 
 (defun resource-path (path)
@@ -64,7 +56,7 @@
 (defclass login ()
   ((id :col-type serial :accessor id)
    (fullname :col-type string :initarg :fullname :accessor user-fullname)
-   (location :col-type (or postmodern:db-null string)
+   (location :col-type (or db-null string)
              :initarg :location :accessor user-location)
    (username :col-type string :initarg :username :accessor user-username)
    (password :col-type string :initarg :password :accessor user-password))
@@ -108,7 +100,7 @@
 
 (defgeneric repository-real-path (repo)
   (:method ((repo repository))
-           (merge-pathnames (repository-path repo) *repository-directory*)))
+           (merge-pathnames (repository-path repo) *git-user-homedir*)))
 
 (defgeneric user-primary-email (user)
   (:method ((user login))
@@ -134,7 +126,7 @@ be used to set the requested size."
 (defun key-parse (key)
   "Parse a KEY string and return a new KEYS instance, if there is a
   current user then set them as the foreign key."
-  (cl-ppcre:register-groups-bind
+  (register-groups-bind
       (type key title)
       ("^(\\S*)\\s+(\\S*)\\s+(\\S*)$" key)
     (eval
@@ -171,7 +163,7 @@ keyword can be used to set the requested size."
     (concatenate 'string
 		 "http://www.gravatar.com/avatar/"
 		 (format nil "~(~{~2,'0X~}~)"
-			 (map 'list #'identity (md5:md5sum-sequence (coerce email 'simple-string))))
+			 (map 'list #'identity (md5sum-sequence (coerce email 'simple-string))))
 		 "?s="
 		 (prin1-to-string size)))
 
@@ -214,34 +206,34 @@ passwords"
 
 
 (defun verify-password (login password)
-  (let* ((user (car (query
-		     (:select 'login.id 'login.password
-			      :from 'login
-			      :left-join 'email :on (:= 'login.id 'email.user-id)
-			      :where (:or (:= 'login.username login) (:= 'email.email login))))))
-	 (user-id (car user))
-	 (user-passwd (car (cdr user))))
-    (if (compare-password-hash user-passwd password)
-	user-id
-	nil)))
+  "Confirm that the `password' is correct for a user with the
+`login'.  Return the user object of the authenticated user."
+  (let ((user
+         (car (query-dao
+               'login
+               (:select 'login.*
+                        :from 'login
+                        :left-join 'email :on (:= 'login.id 'email.user-id)
+                        :where (:or (:= 'login.username login)
+                                    (:= 'email.email login)))))))
+    (if (compare-password-hash (user-password user) password)
+        user
+        nil)))
 
 
 (defun login-session (login password)
   "Log a user in to a session, the user object will be stored as the
 value of the session."
-  (let ((user-id (verify-password login password)))
-    (if user-id
-	(let ((session (start-session))
-	      (user (get-dao 'login user-id)))
-	  (setf (session-value 'user session) user)
-	  )
-	nil
-	)))
+  (let ((user (verify-password login password)))
+    (if user
+        (let ((session (start-session)))
+          (setf (session-value 'user session) user))
+        nil)))
 
 
 (defun logout-session ()
   "Remove the user from the current session-login"
-  (delete-session-value 'user))
+  (remove-session *session*))
 
 
 (defun loginp ()
@@ -255,20 +247,21 @@ user object."
   "Create a new repository with a NAME and an OWNER the repository
 will not be PUBLIC by default by default."
   (let* ((username  (slot-value owner 'username))
-	 (relative-path (make-pathname :directory
-					       (list ':relative
-						     (string username)
-						     (string name))))
-	 (path (merge-pathnames relative-path
-			       *repository-directory*)))
+         (relative-path (make-pathname :directory
+                                       (list ':relative
+                                             (string username)
+                                             (string name))))
+         (path (merge-pathnames relative-path
+                                *git-user-homedir*)))
+    ;; TODO this should check that there isn't a repository already
     (ensure-directories-exist path)
     (insert-dao
      (make-instance 'repository
-		    :owner-id (slot-value owner 'id)
-		    :name name
-		    :path (namestring relative-path)
-		    :public public))
-    (cl-git:ensure-git-repository-exist path t)))
+                    :owner-id (slot-value owner 'id)
+                    :name name
+                    :path (namestring relative-path)
+                    :public public))
+    (ensure-git-repository-exist path t)))
 
 
 (defun create-user (username fullname password email)

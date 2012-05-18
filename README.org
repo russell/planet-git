@@ -67,6 +67,41 @@
    (planet-git:shutdown)
    #+END_SRC
 
+
+*** Local Development Deployment
+    Add a git user,
+
+    #+BEGIN_SRC shell
+    adduser git
+    #+END_SRC
+
+    Now as the git user install quicklisp and link in the development
+    version.
+
+    #+BEGIN_SRC shell
+    curl -O http://beta.quicklisp.org/quicklisp.lisp
+    sbcl --load quicklisp.lisp
+    #+END_SRC
+
+    Quicklisp needs to be installed into ~/.quicklisp so that there
+    won't be any problems if a user is created with the name
+    Quicklisp.
+
+    #+BEGIN_SRC common-lisp
+    (quicklisp-quickstart:install :path ".quicklisp/")
+    (quit)
+    #+END_SRC
+
+    Now development a development copy of planet-git is linked in for
+    ASDF to find.
+
+    #+BEGIN_SRC shell
+    mkdir -p ~/.local/share/common-lisp/source/
+    cd ~/.local/share/common-lisp/source/
+    ln -s ~user/projects/planet-git .
+    cd -
+    #+END_SRC
+
 *** Definitions
 
     Pages, return complete html pages

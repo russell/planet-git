@@ -19,7 +19,7 @@
 ;; The configuration code was taken from elephant, the lisp object
 ;; database
 
-(in-package :planet-git)
+(in-package #:planet-git)
 
 (defparameter *swank-server* nil
   "Bound to the running swank server, if *SWANK-ENABLED* is true.")
@@ -56,12 +56,17 @@
 (defparameter *db-password* "oenRTe90u"
   "Database user name")
 
-(defparameter *repository-path* "/home/russell/tmp/planet-git/"
-  "The location where new git repositories are created.")
+(defparameter *git-user-homedir* "/home/git/"
+  "The location where new git repositories are created and where the
+  .ssh/authorized_keys is located.")
 
 (defparameter *git-ssh-host* "git@marvin.home"
   "Host which is used with Git SSH (can include the user name
   e.g. 'user@my.git.host'")
+
+(defparameter *git-shell-path* "/usr/bin/git-shell.lisp"
+  "The location where new git repositories are created.")
+
 
 ;; TODO: create a macro to avoid carpal tunnel syndrome from typing a
 ;; parameter name thrice
@@ -75,35 +80,39 @@
     (:db-name *db-name*)
     (:db-user-name *db-user-name*)
     (:db-password *db-password*)
-    (:repository-path *repository-path*)
-    (:git-ssh-host *git-ssh-host*)))
+    (:git-user-homedir *git-user-homedir*)
+    (:git-ssh-host *git-ssh-host*)
+    (:git-shell-path *git-shell-path*)))
 
-(defun initialize-user-parameters ()
-  (loop for (keyword variable) in *user-configurable-parameters* do
-       (awhen (get-user-configuration-parameter keyword)
-	 (setf (symbol-value variable) it))))
+(defun initialize-parameters (&key path)
+    (loop
+       :for (keyword variable)
+       :in *user-configurable-parameters*
+       :do (awhen (get-user-configuration-parameter keyword path)
+             (setf (symbol-value variable) it))))
 
-(defun get-config-option (option component)
-  (let ((filespec (make-pathname :defaults (asdf:component-pathname (asdf:component-system component))
-				 :name "config"
-				 :type "sexp"))
-	(orig-filespec (make-pathname :defaults (asdf:component-pathname (asdf:component-system component))
-				 :name "config"
-				 :type "sexp.in")))
+(defun get-config-option (option component &optional path)
+  (let ((filespec (or path
+                      (make-pathname :defaults (asdf:component-pathname (asdf:component-system (asdf:find-system component)))
+                                     :name "config"
+                                     :type "sexp")))
+(orig-filespec (make-pathname :defaults (asdf:component-pathname (asdf:component-system component))
+                                      :name "config"
+                                      :type "sexp.in")))
     (unless (probe-file filespec)
       (with-simple-restart (accept-default "Create default settings for config.sexp and proceed.")
-	(error "Missing configuration file: config.sexp.  Please copy config.sexp.in to config.sexp and customize for your local environment."))
+        (error "Missing configuration file: config.sexp.  Please copy config.sexp.in to config.sexp and customize for your local environment."))
       (with-open-file (src orig-filespec :direction :input)
-	(with-open-file (dest filespec :direction :output)
-	  (write (read src) :stream dest))))
+        (with-open-file (dest filespec :direction :output)
+          (write (read src) :stream dest))))
     (with-open-file (config filespec)
       (cdr (assoc option (read config))))))
 
-(defun get-user-configuration-parameter (name)
+(defun get-user-configuration-parameter (name &optional path)
   "This function pulls a value from the key-value pairs stored in
    my-config.sexp so data stores can have their own pairs for appropriate
    customization after loading."
-  (get-config-option name (asdf:find-system :planet-git)))
+  (get-config-option name (asdf:find-system :planet-git) path))
 
 (defun wait-for-shutdown-connection (&optional (port *shutdown-port*))
   "Opens a server socket at the given port (default *SHUTDOWN-PORT*,
@@ -118,22 +127,27 @@ waits for a connection indefinitely."
       (sb-bsd-sockets:socket-close client-socket)
       (sb-bsd-sockets:socket-close socket))))
 
-(defun startup ()
-  (initialize-user-parameters)
-  (setf *swank-server* (when *swank-enabled*
-                         (swank:create-server :port *swank-port* :style :spawn :dont-close t)))
+(defun startup (&key config-path debug no-config)
+  "startup the application either loading the configuration from the
+specified CONFIG-PATH of from the project root."
+  (unless no-config (initialize-parameters :path config-path))
+  (if debug
+      (setf *catch-errors-p* nil)
+      (setf *catch-errors-p* t))
+  (format t ";; Connecting to database.~%")
   (connect-toplevel *db-name*
-                               *db-user-name*
-                               *db-password*
-                               *db-host*
-                               :port *db-port*)
+                    *db-user-name*
+                    *db-password*
+                    *db-host*
+                    :port *db-port*)
   (create-tables)
-  (setf *httpd* (start (make-instance 'acceptor
-                                                  :port *webserver-port*)))
+  (setf *httpd* (start (make-instance 'easy-acceptor
+                                      :port *webserver-port*)))
   (format t ";; Hunchentoot started at port: ~s.~%" *webserver-port*)
   *httpd*)
 
 (defun shutdown ()
+  "disconnect hunchentoot and the database"
   (format t ";; Disconnecting from planet-git database ... ")
   (disconnect *database*)
   (format t "done.~%")
@@ -141,10 +155,14 @@ waits for a connection indefinitely."
   (stop *httpd*)
   (format t "done.~%"))
 
-(defun main ()
-  (startup)
+(defun main (config-path &key debug)
+  (startup :config-path config-path)
+  (setf *swank-server* (when *swank-enabled*
+                         (swank:create-server :port *swank-port*
+                                              :style :spawn :dont-close t)))
   (format t ";; Starting shutdown service at port: ~s.~%" *shutdown-port*)
   (wait-for-shutdown-connection)
-  (format t ";; Shutdown connection detected at port ~S. Attempting to stop ... " *shutdown-port*)
+  (format t ";; Shutdown connection detected at port ~S. Attempting to stop ... "
+          *shutdown-port*)
   (shutdown)
-  (format t "done.~%") )
+  (format t "done.~%"))
