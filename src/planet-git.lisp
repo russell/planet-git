@@ -233,7 +233,7 @@ value of the session."
 
 (defun logout-session ()
   "Remove the user from the current session-login"
-  (delete-session-value 'user))
+  (remove-session *session*))
 
 
 (defun loginp ()
