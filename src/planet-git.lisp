@@ -100,7 +100,7 @@
 
 (defgeneric repository-real-path (repo)
   (:method ((repo repository))
-           (merge-pathnames (repository-path repo) *repository-directory*)))
+           (merge-pathnames (repository-path repo) *git-user-homedir*)))
 
 (defgeneric user-primary-email (user)
   (:method ((user login))
@@ -247,19 +247,20 @@ user object."
   "Create a new repository with a NAME and an OWNER the repository
 will not be PUBLIC by default by default."
   (let* ((username  (slot-value owner 'username))
-	 (relative-path (make-pathname :directory
-					       (list ':relative
-						     (string username)
-						     (string name))))
-	 (path (merge-pathnames relative-path
-			       *repository-directory*)))
+         (relative-path (make-pathname :directory
+                                       (list ':relative
+                                             (string username)
+                                             (string name))))
+         (path (merge-pathnames relative-path
+                                *git-user-homedir*)))
+    ;; TODO this should check that there isn't a repository already
     (ensure-directories-exist path)
     (insert-dao
      (make-instance 'repository
-		    :owner-id (slot-value owner 'id)
-		    :name name
-		    :path (namestring relative-path)
-		    :public public))
+                    :owner-id (slot-value owner 'id)
+                    :name name
+                    :path (namestring relative-path)
+                    :public public))
     (ensure-git-repository-exist path t)))
 
 

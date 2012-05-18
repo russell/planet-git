@@ -50,7 +50,6 @@
   (:shadow #:shutdown)
   (:export
    #:*git-ssh-host*
-   #:*repository-directory*
    #:*git-user-homedir*
    #:*git-ssh-host*
    #:create-tables
