@@ -206,29 +206,29 @@ passwords"
 
 
 (defun verify-password (login password)
-  (let* ((user (car (query
-		     (:select 'login.id 'login.password
-			      :from 'login
-			      :left-join 'email :on (:= 'login.id 'email.user-id)
-			      :where (:or (:= 'login.username login) (:= 'email.email login))))))
-	 (user-id (car user))
-	 (user-passwd (car (cdr user))))
-    (if (compare-password-hash user-passwd password)
-	user-id
-	nil)))
+  "Confirm that the `password' is correct for a user with the
+`login'.  Return the user object of the authenticated user."
+  (let ((user
+         (car (query-dao
+               'login
+               (:select 'login.*
+                        :from 'login
+                        :left-join 'email :on (:= 'login.id 'email.user-id)
+                        :where (:or (:= 'login.username login)
+                                    (:= 'email.email login)))))))
+    (if (compare-password-hash (user-password user) password)
+        user
+        nil)))
 
 
 (defun login-session (login password)
   "Log a user in to a session, the user object will be stored as the
 value of the session."
-  (let ((user-id (verify-password login password)))
-    (if user-id
-	(let ((session (start-session))
-	      (user (get-dao 'login user-id)))
-	  (setf (session-value 'user session) user)
-	  )
-	nil
-	)))
+  (let ((user (verify-password login password)))
+    (if user
+        (let ((session (start-session)))
+          (setf (session-value 'user session) user))
+        nil)))
 
 
 (defun logout-session ()
