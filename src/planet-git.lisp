@@ -164,7 +164,7 @@ be used to set the requested size."
   "Return the gravatar url for an EMAIL address, an optional SIZE
 keyword can be used to set the requested size."
     (concatenate 'string
-		 "http://www.gravatar.com/avatar/"
+		 "https://secure.gravatar.com/avatar/"
 		 (format nil "~(~{~2,'0X~}~)"
 			 (map 'list #'identity (md5sum-sequence (coerce email 'simple-string))))
 		 "?s="
