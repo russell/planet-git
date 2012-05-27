@@ -16,9 +16,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(in-package #:planet-git)
+
 
 (defun base-css ()
-  (setf (content-type* *reply*) "text/css")
+  (setf (content-type*) "text/css")
   (css
     (("html, body")
      (:background-color "#eee"))

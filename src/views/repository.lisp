@@ -1,3 +1,5 @@
+;;; -*- Mode: Lisp; Syntax: COMMON-LISP; Base: 10 -*-
+
 ;; Planet-Git a source code repository manager.
 ;; Copyright (C) 2011-2012 Russell Sim <russell.sim@gmail.com>
 ;;
@@ -13,8 +15,6 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;;;; repository.lisp
 
 (in-package #:planet-git)
 
@@ -81,6 +81,13 @@
 			     :class "btn primary"
 			     :name "submit"
 			     :value "Create")))))))
+
+(define-easy-handler (repository-js :uri "/static/repository.js")
+    ()
+    (setf (content-type*) "text/javascript")
+    (ps-compile-file (merge-pathnames
+                      (make-pathname :directory (list :relative "src" "paren") :name "commit" :type "paren")
+                      (asdf:component-pathname (asdf:component-system (asdf:find-system :planet-git))))))
 
 
 (defun repository-page (username repository-name &key branch)

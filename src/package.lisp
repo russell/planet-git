@@ -45,7 +45,10 @@
   (:import-from #:css-lite
                 #:css)
   (:import-from #:parenscript
-                #:defpsmacro)
+                #:defpsmacro
+                #:ps-compile-file
+                #:ps-inline
+                #:ps)
   (:import-from #:md5
                 #:md5sum-sequence)
   ;; hunchentoot:shutdown is shadowed by ours

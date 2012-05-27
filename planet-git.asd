@@ -16,6 +16,8 @@
 
 ;;;; planet-git.asd
 
+(operate 'load-op :paren-files)
+
 (asdf:defsystem #:planet-git
   :serial t
   :depends-on (#:anaphora
@@ -46,7 +48,8 @@
                          (:module "paren"
                                   :depends-on ("package")
                                   :components
-                                  ((:file "jquery")))
+                                  ((:file "jquery")
+                                   (:parenscript-file "commit")))
                          (:module "views"
                                   :depends-on ("forms"
                                                "validators"
