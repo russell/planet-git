@@ -96,7 +96,7 @@
        (is-current-user (when user (equal (slot-value user 'username)
 					  (when (loginp) (slot-value (loginp) 'username))))))
     (if (and visible user repository)
-	(with-git-repository ((repository-real-path repository))
+	(with-repository ((repository-real-path repository))
 	  (let* ((branches (git-reference-listall))
 		 (branch (selected-branch repository branches branch)))
 	    (render-user-page (user :title
@@ -135,13 +135,13 @@
 			   (when (> count 10) (return))
 			   (htm
 			    (:li
-			     (let* ((author (git-commit-author commit))
-				    (name (first author))
-				    (email (second author))
-				    (timestamp (third author)))
+			     (let* ((author (commit-author commit))
+				    (name (getf author :name))
+				    (email (getf author :email))
+				    (timestamp (getf author :time)))
 			       (htm
 				(:img :src (gravatar-url email :size 40))
-				(:p (str (git-commit-message commit)))
+				(:p (str (commit-message commit)))
 				(:span :class "author" (str name))
 				(:span :class "date"
 				       (str

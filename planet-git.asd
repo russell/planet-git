@@ -32,6 +32,7 @@
                #:md5)
   :components ((:static-file "planet-git.asd")
                (:module "src"
+                        :serial t
                         :components
                         ((:file "package")
                          (:file "config" :depends-on ("package"))

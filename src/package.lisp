@@ -27,11 +27,11 @@
   (:import-from #:chunga
                 #:as-keyword)
   (:import-from #:cl-git
-                #:ensure-git-repository-exist
-                #:git-commit-author
-                #:git-commit-message
+                #:ensure-repository-exist
+                #:commit-author
+                #:commit-message
                 #:git-reference-listall
-                #:with-git-repository
+                #:with-repository
                 #:with-git-revisions)
   (:import-from #:cl-ppcre
                 #:create-scanner

@@ -1,3 +1,5 @@
+;;; -*- Mode: Lisp; Syntax: COMMON-LISP; Base: 10 -*-
+
 ;; Planet-Git a source code repository manager.
 ;; Copyright (C) 2011-2012 Russell Sim <russell.sim@gmail.com>
 ;;
@@ -262,7 +264,7 @@ will not be PUBLIC by default by default."
                     :name name
                     :path (namestring relative-path)
                     :public public))
-    (ensure-git-repository-exist path t)))
+    (ensure-repository-exist path t)))
 
 
 (defun create-user (username fullname password email)
