@@ -30,35 +30,36 @@
 
 
 (define-rest-handler (user-page :uri "^/(\\w+)/?$" :args (username)) ()
+  (log-message* *lisp-warnings-log-level* "Entered User Page")
   (let
       ((user (car (select-dao 'login (:= 'username username)))))
     (if user
-	(let ((username (slot-value user 'username))
-	      (is-current-user (equal (slot-value user 'username)
-				      (when (loginp) (slot-value (loginp) 'username)))))
-	  (render-user-page
-          (user
-           :extra-header (when is-current-user
-                           (htm (:a :class "btn primary pull-right"
-                                           :href "/repository/new"
-                                           "Add Repository"))))
-	    (let ((repositories (select-dao
-				 'repository (:= 'owner-id (slot-value user 'id)))))
-	      (log-message* *lisp-warnings-log-level* "Repositories ~a" repositories)
-	      (labels ((repository-fragment (repos)
-			 (let* ((repo (car repos)) (rest (cdr repos))
-				(visible (or (slot-value repo 'public)
-					     (equal (slot-value user 'username)
-						    (when (loginp) (slot-value (loginp) 'username)))))
-				(public (repository-public repo)))
-			   (log-message* *lisp-warnings-log-level* "Repository ~a" repo)
-			   (when (and repo (or visible is-current-user))
-			     (repository-item-fragment (slot-value repo 'name)
-						       username
-						       public))
-			   (when rest (repository-fragment rest)))))
-		(when repositories (repository-fragment repositories))))))
-	(setf (return-code*) +http-not-found+))))
+        (let ((username (slot-value user 'username))
+              (is-current-user (equal (slot-value user 'username)
+                                      (when (loginp) (slot-value (loginp) 'username)))))
+          (render-user-page
+              (user
+               :extra-header (when is-current-user
+                               (htm (:a :class "btn primary pull-right"
+                                        :href "/repository/new"
+                                        "Add Repository"))))
+            (let ((repositories (select-dao
+                                 'repository (:= 'owner-id (slot-value user 'id)))))
+              (log-message* *lisp-warnings-log-level* "Repositories ~a" repositories)
+              (labels ((repository-fragment (repos)
+                         (let* ((repo (car repos)) (rest (cdr repos))
+                                (visible (or (slot-value repo 'public)
+                                             (equal (slot-value user 'username)
+                                                    (when (loginp) (slot-value (loginp) 'username)))))
+                                (public (repository-public repo)))
+                           (log-message* *lisp-warnings-log-level* "Repository ~a" repo)
+                           (when (and repo (or visible is-current-user))
+                             (repository-item-fragment (slot-value repo 'name)
+                                                       username
+                                                       public))
+                           (when rest (repository-fragment rest)))))
+                (when repositories (repository-fragment repositories))))))
+        (setf (return-code*) +http-not-found+))))
 
 
 (def-who-macro* email-item-fragment (user email)

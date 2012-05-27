@@ -59,11 +59,15 @@ DEFINE-REST-HANDLER.")
 (defun dispatch-rest-handlers (request)
   "This is a dispatcher which returns the appropriate handler
 defined with DEFINE-REST-HANDLER, if there is one."
-  (loop for (uri acceptor-names rest-handler) in *rest-handler-alist*
-     when (and (or (eq acceptor-names t)
-                   (find (acceptor-name *acceptor*) acceptor-names :test #'eq))
-               (cond ((stringp uri)
-                      (let ((scanner (create-scanner uri)))
-                        (scan scanner (script-name request))))
-                     (t (funcall uri request))))
-     do (return rest-handler)))
+  (loop
+     :for (uri acceptor-names rest-handler)
+     :in *rest-handler-alist*
+     :when (and (or (eq acceptor-names t)
+                    (find (acceptor-name *acceptor*) acceptor-names :test #'eq))
+                (cond ((stringp uri)
+                       (let ((scanner (create-scanner uri)))
+                         (scan scanner (script-name request))))
+                      (t (funcall uri request))))
+     :do (progn
+           (log-message* *lisp-warnings-log-level* "Request Handler: ~s" rest-handler)
+           (return rest-handler))))

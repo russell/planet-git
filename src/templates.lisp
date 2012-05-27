@@ -253,7 +253,7 @@ tab."
               (lambda (tab)
                 (let ((tab-name (car tab)))
                   `(:li
-                    :class ,(when (equal tab-name default-tab) "active")
+                    :class ,(if (equal tab-name default-tab) "active" "")
                     (:a :href ,(concatenate 'string "#" (string-downcase tab-name))
                         :data-toggle "tab"
                         (str ,tab-name)))))
