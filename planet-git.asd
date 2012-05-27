@@ -57,4 +57,5 @@
                                    (:file "user")
                                    (:file "registration")
                                    (:file "repository")))
+                         (:file "css")
                          (:file "planet-git" :depends-on ("views"))))))

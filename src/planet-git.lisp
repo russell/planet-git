@@ -48,6 +48,7 @@
  (list
   #'dispatch-easy-handlers
   #'dispatch-rest-handlers
+  (create-prefix-dispatcher "/static/base.css" #'base-css)
   (create-folder-dispatcher-and-handler "/static/" (resource-path "static"))
   ))
 
