@@ -39,9 +39,6 @@ SYMBOL.  Used in cases where no parameter name is provided."
 SYMBOL.  Used in cases where no parameter name is provided."
   (intern (concatenate 'string (symbol-name form) "-" (symbol-name field))))
 
-(defun validate-form (form)
-  (declare (ignore form)))
-
 (defmacro define-form (form-name fields)
   `(defparameter ,form-name ',fields))
 
