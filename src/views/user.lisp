@@ -95,7 +95,7 @@ delete button"
 	 (str (key-title key))))))
 
 
-(def-who-macro* user-settings-page (user emails keys)
+(def-who-macro* user-settings-tmpl (user emails keys)
   (render-standard-page (:title (str (user-username user))
                          :page-header
                          ((:img :src (user-gravatar-url user :size 40))
@@ -143,7 +143,7 @@ delete button"
                                        :value "Save")))))))
 
 
-(define-form-handler (user-settings-view :uri "^/(\\w+)/settings/?$"
+(define-form-handler (user-settings-page :uri "^/(\\w+)/settings/?$"
                                          :args (username))
     ((:email-form
       (email :parameter-type 'string :request-type :post
@@ -179,7 +179,7 @@ delete button"
                    (key-parse key)))))
           (let ((emails (select-dao 'email (:= 'user-id (id user))))
                 (keys (select-dao 'key (:= 'user-id (id user)))))
-            (user-settings-page user emails keys)))
+            (user-settings-tmpl user emails keys)))
         (setf (return-code*) +http-forbidden+))))
 
 
