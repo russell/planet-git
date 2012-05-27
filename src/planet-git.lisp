@@ -138,12 +138,25 @@ be used to set the requested size."
 
 (defmethod key-to-authorizedkeys ((key key))
   "Add the users authorized KEY to the authorized_keys file."
-  (with-open-file (stream (merge-pathnames ".ssh/authorized_keys" *git-user-homedir*)
-                          :direction :output
-                          :if-exists :append)
+  (let ((ssh-dir (merge-pathnames ".ssh/" *git-user-homedir*))
+        (authorizedkeys-file (merge-pathnames ".ssh/authorized_keys"
+                                              *git-user-homedir*)))
+    (unless (directory-exists-p ssh-dir)
+      (ensure-directories-exist ssh-dir)
+      (sb-posix:chmod ssh-dir
+                      (logior sb-posix::s-iread sb-posix::s-iwrite
+                              sb-posix::s-iexec))
+      (with-open-file (stream
+                       authorizedkeys-file
+                       :direction :output :if-does-not-exist :create))
+      (sb-posix:chmod authorizedkeys-file
+                      (logior sb-posix::s-iread sb-posix::s-iwrite)))
+  (with-open-file (stream
+                   authorizedkeys-file
+                   :direction :output :if-exists :append)
     (format stream
             "command=\"KEY_ID=~A ~A\",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty ~A ~A ~A~%"
-            (id key) *git-shell-path* (key-type key) (key-value key) (key-title key))))
+            (id key) *git-shell-path* (key-type key) (key-value key) (key-title key)))))
 
 ;;; Path
 

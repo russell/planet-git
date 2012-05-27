@@ -33,6 +33,8 @@
                 #:git-reference-listall
                 #:with-repository
                 #:with-git-revisions)
+  (:import-from #:cl-fad
+                #:directory-exists-p)
   (:import-from #:cl-ppcre
                 #:create-scanner
                 #:register-groups-bind

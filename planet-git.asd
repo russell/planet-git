@@ -31,6 +31,7 @@
                #:database-migrations
                #:parenscript
                #:paren-files
+               #:cl-fad
                #:md5)
   :components ((:static-file "planet-git.asd")
                (:module "src"
