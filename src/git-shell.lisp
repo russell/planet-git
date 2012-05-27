@@ -70,7 +70,7 @@
     (read-files *config* (list (truename (merge-pathnames (pathname ".git-shell.conf") (user-homedir-pathname)))))
   (sb-int:simple-file-error ()
     (print-error "This copy of planet-git isn't correctly configured. Unable to find git-shell config.~%")
-    (quit)))
+    (quit :unix-status 1)))
 
 
 (flet ((get-option (option)
