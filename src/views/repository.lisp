@@ -152,9 +152,8 @@
 				(:span :class "author" (str name))
 				(:span :class "date"
 				       (str
-                        (local-time:format-timestring nil timestamp :format
-                                                      '(:long-month " " :day ", " :year))))))
-			     )))))))
+                        (format-timestring nil timestamp :format
+                                           '(:long-month " " :day ", " :year)))))))))))))
 		((and (eq branch nil) is-current-user)
 		 (htm
 		  (:div :class "well"
@@ -170,7 +169,6 @@ git push origin master" *git-ssh-host* (user-username user) (repository-name rep
 		((eq branch nil)
 		 (htm
 		  (:div :class "well"
-			(:h2 "Under Construction."))
-		  ))
+			(:h2 "Under Construction."))))
 		(t (setf (return-code*) +http-not-found+))))))
 	(setf (return-code*) +http-not-found+))))

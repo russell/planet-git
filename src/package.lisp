@@ -49,6 +49,8 @@
                 #:ps-compile-file
                 #:ps-inline
                 #:ps)
+  (:import-from #:local-time
+                #:format-timestring)
   (:import-from #:md5
                 #:md5sum-sequence)
   ;; hunchentoot:shutdown is shadowed by ours
