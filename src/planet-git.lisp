@@ -137,13 +137,13 @@ be used to set the requested size."
                      ,@(when (loginp) (list :user-id (id (loginp))))))))
 
 (defmethod key-to-authorizedkeys ((key key))
-  "Add the users authorized KEY to the authorized_keys file."
-  (let ((ssh-dir (merge-pathnames ".ssh/" *git-user-homedir*))
-        (authorizedkeys-file (merge-pathnames ".ssh/authorized_keys"
-                                              *git-user-homedir*)))
-    (unless (directory-exists-p ssh-dir)
-      (ensure-directories-exist ssh-dir)
-      (sb-posix:chmod ssh-dir
+  "Add the users authorized KEY to the authorized_keys file.  If the
+directory doesn't exist then create it."
+  (let ((authorizedkeys-file (merge-pathnames "authorized_keys"
+                                              *git-user-sshdir*)))
+    (unless (directory-exists-p *git-user-sshdir*)
+      (ensure-directories-exist *git-user-sshdir*)
+      (sb-posix:chmod *git-user-sshdir*
                       (logior sb-posix::s-iread sb-posix::s-iwrite
                               sb-posix::s-iexec))
       (with-open-file (stream
@@ -193,6 +193,7 @@ keyword can be used to set the requested size."
 		    current))
 	    sequence
 	    :initial-value "/")))
+
 
 (defun selected-branch (repository repository-branches url-branch)
   "From a REPOSITORY orm object a list of the git REPOSTIORY-BRANCHES

@@ -60,6 +60,9 @@
   "The location where new git repositories are created and where the
   .ssh/authorized_keys is located.")
 
+(defparameter *git-user-sshdir* (merge-pathnames ".ssh/" *git-user-homedir*)
+  "The location where the authorized keys file should be stored.  If it doesn't exist then it will be created with a mode 700.")
+
 (defparameter *git-ssh-host* "git@marvin.home"
   "Host which is used with Git SSH (can include the user name
   e.g. 'user@my.git.host'")
