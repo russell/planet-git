@@ -20,6 +20,13 @@
 
 ;; this module provides macros for rest like handlers
 
+;;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+(defun request-accepts* (&optional (request *request*))
+  (let* ((header (cl-ppcre:split ";" (header-in "accept" request)))
+         (content-types (cl-ppcre:split "," (car header)))
+         (options (cdr header)))
+    content-types))
+
 (defparameter *rest-handler-alist* nil
   "An alist of \(URI acceptor-names function) lists defined by
 DEFINE-REST-HANDLER.")
@@ -28,28 +35,29 @@ DEFINE-REST-HANDLER.")
   (when (atom description)
     (setf description (list description)))
   (destructuring-bind (name &key uri args (acceptor-names t)
-                            (default-parameter-type ''string)
-                            (default-request-type :both))
+                              (content-type "text/html")
+                              (default-parameter-type ''string)
+                              (default-request-type :both))
       description
     `(progn
        ,@(when uri
-               (list
-                (with-rebinding (uri)
-                  `(progn
-                     (setf *rest-handler-alist*
-                           (substitute-if
-                            (list ,uri ,acceptor-names ',name)
-                            (lambda (list)
-                                        (and (or (equal ,uri (first list))
-                                                 (eq ',name (third list)))
-                                             (or (eq ,acceptor-names t)
-                                                 (intersection ,acceptor-names
-                                                               (second list)))))
-                            *rest-handler-alist*))))))
+           (list
+            (with-rebinding (uri)
+              `(progn
+                 (setf *rest-handler-alist*
+                       (substitute-if
+                        (list ,uri ,acceptor-names ,content-type ',name)
+                        (lambda (list)
+                          (and (or (equal ,uri (first list))
+                                   (eq ',name (third list)))
+                               (or (eq ,acceptor-names t)
+                                   (intersection ,acceptor-names
+                                                 (second list)))))
+                        *rest-handler-alist*))))))
        (defun ,name (&key ,@(loop for part in lambda-list
-                               collect (make-defun-parameter part
-                                                             default-parameter-type
-                                                             default-request-type)))
+                                  collect (make-defun-parameter part
+                                                                default-parameter-type
+                                                                default-request-type)))
          ,(if args
               `(register-groups-bind ,args
                    (,uri (request-uri*))
@@ -60,14 +68,15 @@ DEFINE-REST-HANDLER.")
   "This is a dispatcher which returns the appropriate handler
 defined with DEFINE-REST-HANDLER, if there is one."
   (loop
-     :for (uri acceptor-names rest-handler)
+     :for (uri acceptor-names content-type rest-handler)
      :in *rest-handler-alist*
      :when (and (or (eq acceptor-names t)
                     (find (acceptor-name *acceptor*) acceptor-names :test #'eq))
                 (cond ((stringp uri)
                        (let ((scanner (create-scanner uri)))
                          (scan scanner (script-name request))))
-                      (t (funcall uri request))))
+                      (t (funcall uri request)))
+                (find content-type (request-accepts*) :test #'equal))
      :do (progn
            (log-message* *lisp-warnings-log-level* "Request Handler: ~s" rest-handler)
            (return rest-handler))))
