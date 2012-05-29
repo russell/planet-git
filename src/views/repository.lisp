@@ -34,6 +34,40 @@
       ((ref (concatenate 'string "refs/heads/" branch)))
     (repository-page username repository-name :branch ref)))
 
+(define-rest-handler (repository-branch-commits-json
+                      :uri "^/([^/]+)/([^/]+)/branch/([^/]+)/?$"
+                      :args (username repository-name branch)
+                      :content-type "application/json")
+    ()
+  (let* ((ref (concatenate 'string "refs/heads/" branch))
+         (user (car (select-dao 'login (:= 'username username))))
+         (repository (car (select-dao
+                              'repository (:and
+                                           (:= 'owner-id (slot-value user 'id))
+                                           (:= 'name repository-name))))))
+    (setf (content-type*) "application/json")
+    (with-html-output-to-string (*standard-output*)
+	(with-repository ((repository-real-path repository))
+      (let* ((branches (git-reference-listall))
+             (branch (selected-branch repository branches ref))
+             (count 0))
+        (princ "[")
+        (with-git-revisions (commit :head branch)
+          (setf count (+ count 1))
+          (let* ((author (commit-author commit))
+                 (name (getf author :name))
+                 (email (getf author :email))
+                 (timestamp (getf author :time)))
+              (encode-json-alist
+               (eval `(quote
+                       (("icon" . ,(gravatar-url email :size 40))
+                        ("message" . ,(commit-message commit))
+                        ("name" . ,name)
+                        ("time" . ,(format-timestring nil timestamp
+                                                     :format '(:long-month " " :day ", " :year)))))))
+            (if (> count 9) (return) (princ ","))))
+        (princ "]"))))))
+
 
 (define-rest-handler (repository-key-access
                       :uri "^/([^/]+)/([^/]+)/key/([^/]+)/?$"
@@ -66,7 +100,7 @@
 	  (create-repository name (loginp) public)
 	  (redirect (concatenate 'string "/"
 					     (slot-value (loginp) 'username) "/"name "/")))
-      (render-standard-page (:title "New Repository")
+    (render-standard-page (:title "New Repository")
 	(:form :action "" :method "post"
 	       (if (> (hash-table-count errors) 0)
 		   (htm
@@ -107,13 +141,14 @@
     (if (and visible user repository)
 	(with-repository ((repository-real-path repository))
 	  (let* ((branches (git-reference-listall))
-		 (branch (selected-branch repository branches branch)))
+             (branch (selected-branch repository branches branch)))
 	    (render-user-page (user :title
 				   (htm (:a :href (url-join (slot-value user 'username))
 						   (str (user-username user)))
 					       (:span (str "/"))
 					       (str (repository-name repository)))
-                   :subtitle "")
+                   :subtitle ""
+                   :extra-head (:script :type "text/javascript" :src "/static/repository.js"))
 	      (cond
 		(branch
 		 (htm
@@ -137,7 +172,7 @@
 					       :selected (when (equal x branch) "true")
 					       (str (remove-ref-path x)))))
 					 (git-reference-listall))))
-		  (:ol :class "commit-list"
+		  (:ol :id "commit-list" :class "commit-list"
 		       (let ((count 0))
 			 (with-git-revisions (commit :head branch)
 			   (setf count (+ count 1))

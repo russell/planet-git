@@ -38,7 +38,8 @@ which it is in fact.  Useful for defining syntactic constructs"
        (with-html-output (*standard-output* nil)
 	 ,pseudo-html-form))))
 
-(defmacro render-standard-page ((&key title (subtitle "") (body-class "span10") page-header) &body body)
+(defmacro render-standard-page ((&key title (subtitle "") (body-class "span10") page-header extra-head) &body body)
+  "The base page template"
   `(with-html-output-to-string (*standard-output* nil :prologue t)
      (:html :xmlns "http://www.w3.org/1999/xhtml"
 	    :xml\:lang "en"
@@ -50,7 +51,8 @@ which it is in fact.  Useful for defining syntactic constructs"
 	     (:link :rel "stylesheet" :href "/static/css/bootstrap.css")
 	     (:link :rel "stylesheet" :href "/static/base.css")
 	     (:script :type "text/javascript" :src "/static/js/jquery.js")
-	     (:script :type "text/javascript" :src "/static/js/bootstrap.js"))
+	     (:script :type "text/javascript" :src "/static/js/bootstrap.js")
+         ,@extra-head)
 	    (:body
 	     (:div :class "navbar"
 		   (:div :class "navbar-inner"
@@ -119,7 +121,7 @@ which it is in fact.  Useful for defining syntactic constructs"
 			       ,@body))))))))
 
 
-(defmacro render-user-page ((user &key title subtitle (body-class "span10") extra-header) &body body)
+(defmacro render-user-page ((user &key title subtitle (body-class "span10") extra-header extra-head) &body body)
   `(render-standard-page
        (:body-class ,body-class
         :title (str (slot-value ,user 'username))
@@ -128,7 +130,8 @@ which it is in fact.  Useful for defining syntactic constructs"
          (:h1 ,(or title `(:a :href (url-join (slot-value ,user 'username))
                            (str (slot-value ,user 'username))))
          (:small ,(or subtitle `(str (slot-value ,user 'fullname)))))
-         ,(when extra-header extra-header)))
+         ,(when extra-header extra-header)
+         ,extra-head))
      ,@body))
 
 

@@ -17,10 +17,19 @@
 ;;;; package.lisp
 (in-package :cl-user)
 
+(defpackage :planet-git.ps
+  (:use #:cl #:parenscript #:cl-who)
+  (:export
+   #:ajax
+   #:$
+   #:doc-ready))
+
+
 (defpackage :planet-git
   (:use #:cl
         #:hunchentoot
-        #:postmodern)
+        #:postmodern
+        #:planet-git.ps)
   (:import-from #:anaphora
                 #:awhen
                 #:it)
@@ -28,6 +37,8 @@
                 #:component-pathname
                 #:component-system
                 #:find-system)
+  (:import-from #:json
+                #:encode-json-alist)
   (:import-from #:chunga
                 #:as-keyword)
   (:import-from #:cl-git
@@ -69,7 +80,3 @@
    #:startup
    #:shutdown
    #:main))
-
-(defpackage :planet-git.ps
-  (:use :parenscript :cl-who)
-  (:export #:commit-template))

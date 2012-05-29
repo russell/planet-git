@@ -16,7 +16,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package #:planet-git)
+(in-package #:planet-git.ps)
+
+(defpsmacro ajax (url &rest settings)
+  `(ps:chain j-query (ajax ,url (ps:create ,@settings))))
 
 (defpsmacro $ (selector &body chains)
   `(ps:chain (j-query ,selector)
@@ -26,3 +29,6 @@
   `($ document
       (ready (lambda ()
                ,@body))))
+
+(defpsmacro concat (&rest strings)
+  `(concatenate 'string ,@strings))

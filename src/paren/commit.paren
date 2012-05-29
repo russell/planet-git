@@ -1,3 +1,5 @@
+;;; -*- Mode: LISP; Syntax: COMMON-LISP; -*-
+
 ;; Planet-Git a source code repository manager.
 ;; Copyright (C) 2011-2012 Russell Sim <russell.sim@gmail.com>
 ;;
@@ -14,12 +16,29 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :planet-git.ps)
+(in-package #:planet-git.ps)
+
+(defun get-commits (user repository branch &optional from-reference success-fn)
+  "Callback to the planet and retrieve commits for a repository."
+  (let ((url (concat "/" user "/" repository "/branch/" branch "/"
+                          (if from-reference
+                              (concat "?ref=" from-reference)
+                              ""))))
+  (ajax url :headers (create :accept "application/json")
+            :dataType "json"
+            :success success-fn)))
 
 (defun commit-template (commit)
-    (who-ps-html
+  "Take a commit object and return HTML representation"
+    (ps:who-ps-html
      (:li
-      (:img :src (getprop author :icon) :size 40)
-      (:p (getprop author :message))
-      (:span :class "author" (getprop author :name))
-      (:span :class "date" (getprop author :time)))))
+      (:img :src (ps:getprop commit :icon) :size 40)
+      (:p (ps:getprop commit :message))
+      (:span :class "author" (ps:getprop commit :name))
+      (:span :class "date" (ps:getprop commit :time)))))
+
+(defun add-commits-to (selector)
+  (lambda (data text-status xml-http-request)
+    (let ((commit-list ($ selector)))
+    (dolist (commit data)
+      (chain commit-list (append (commit-template commit)))))))
