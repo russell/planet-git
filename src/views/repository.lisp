@@ -85,9 +85,11 @@
 (define-easy-handler (repository-js :uri "/static/repository.js")
     ()
     (setf (content-type*) "text/javascript")
-    (ps-compile-file (merge-pathnames
-                      (make-pathname :directory (list :relative "src" "paren") :name "commit" :type "paren")
-                      (asdf:component-pathname (asdf:component-system (asdf:find-system :planet-git))))))
+    (ps-compile-file
+     (merge-pathnames
+      (make-pathname :directory (list :relative "src" "paren")
+                     :name "commit" :type "paren")
+      (component-pathname (component-system (find-system :planet-git))))))
 
 
 (defun repository-page (username repository-name &key branch)

@@ -24,6 +24,10 @@
   (:import-from #:anaphora
                 #:awhen
                 #:it)
+  (:import-from #:asdf
+                #:component-pathname
+                #:component-system
+                #:find-system)
   (:import-from #:chunga
                 #:as-keyword)
   (:import-from #:cl-git
@@ -65,3 +69,7 @@
    #:startup
    #:shutdown
    #:main))
+
+(defpackage :planet-git.ps
+  (:use :parenscript :cl-who)
+  (:export #:commit-template))

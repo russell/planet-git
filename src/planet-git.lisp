@@ -107,7 +107,8 @@
 
 (defgeneric user-primary-email (user)
   (:method ((user login))
-           (car (select-dao 'email (:and (:= 'user-id (id user)) (:= 'primary t))))))
+           (car (select-dao 'email (:and (:= 'user-id (id user))
+                                         (:= 'primary t))))))
 
 (defgeneric user-gravatar-url (user &key size))
 

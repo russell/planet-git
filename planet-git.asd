@@ -28,6 +28,7 @@
                #:postmodern
                #:cl-ppcre
                #:css-lite
+               #:asdf
                #:database-migrations
                #:parenscript
                #:paren-files
