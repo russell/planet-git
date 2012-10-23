@@ -48,24 +48,26 @@
     (setf (content-type*) "application/json")
     (with-html-output-to-string (*standard-output*)
 	(with-repository ((repository-real-path repository))
-      (let* ((branches (git-reference-listall))
-             (branch (selected-branch repository branches ref))
-             (count 0))
+      (let* ((branches (git-list :reference))
+             (branch (selected-branch repository branches head-ref))
+             (walker (revision-walk (or ref branch))))
         (princ "[")
-        (with-git-revisions (commit :head branch)
-          (setf count (+ count 1))
-          (let* ((author (commit-author commit))
-                 (name (getf author :name))
-                 (email (getf author :email))
-                 (timestamp (getf author :time)))
+        (dotimes (count 10 t)
+          (let ((commit (walker-next walker)))
+            (when (not commit) (return))
+            (unless (= count 0) (princ ","))
+            (let* ((author (git-author commit))
+                   (name (getf author :name))
+                   (email (getf author :email))
+                   (timestamp (getf author :time)))
               (encode-json-alist
                (eval `(quote
-                       (("icon" . ,(gravatar-url email :size 40))
-                        ("message" . ,(commit-message commit))
+                       (("id" . ,(git-id commit))
+                        ("icon" . ,(gravatar-url email :size 40))
+                        ("message" . ,(git-message commit))
                         ("name" . ,name)
                         ("time" . ,(format-timestring nil timestamp
-                                                     :format '(:long-month " " :day ", " :year)))))))
-            (if (> count 9) (return) (princ ","))))
+                                                     :format '(:long-month " " :day ", " :year))))))))))
         (princ "]"))))))
 
 
@@ -139,63 +141,67 @@
        (is-current-user (when user (equal (slot-value user 'username)
 					  (when (loginp) (slot-value (loginp) 'username))))))
     (if (and visible user repository)
-	(with-repository ((repository-real-path repository))
-	  (let* ((branches (git-reference-listall))
-             (branch (selected-branch repository branches branch)))
-	    (render-user-page (user :title
-				   (htm (:a :href (url-join (slot-value user 'username))
-						   (str (user-username user)))
-					       (:span (str "/"))
-					       (str (repository-name repository)))
-                   :subtitle ""
-                   :extra-head (:script :type "text/javascript" :src "/static/repository.js"))
-	      (cond
-		(branch
-		 (htm
-		  (:script :type "text/javascript"
-			   (str
-			    (ps:ps
-			      (defun select-branch (branch)
-				(setf (ps:getprop window 'location 'href)
-				      (concatenate 'string
-						   (ps:lisp (url-join username repository-name "branch"))
-						   branch "/"))))))
-		  (:div :class "project-bar"
-			(:select :id "branch"
-				 :onchange (ps:ps-inline (select-branch
-							  (ps:@ this options
-								(ps:@ this selected-index) value)))
-				 (mapcar #'(lambda (x)
-					     (htm
-					      (:option
-					       :value (remove-ref-path x)
-					       :selected (when (equal x branch) "true")
-					       (str (remove-ref-path x)))))
-					 (git-reference-listall))))
-		  (:ol :id "commit-list" :class "commit-list"
-		       (let ((count 0))
-			 (with-git-revisions (commit :head branch)
-			   (setf count (+ count 1))
-			   (when (> count 10) (return))
-			   (htm
-			    (:li
-			     (let* ((author (commit-author commit))
-				    (name (getf author :name))
-				    (email (getf author :email))
-				    (timestamp (getf author :time)))
-			       (htm
-				(:img :src (gravatar-url email :size 40))
-				(:p (str (commit-message commit)))
-				(:span :class "author" (str name))
-				(:span :class "date"
-				       (str
-                        (format-timestring nil timestamp :format
-                                           '(:long-month " " :day ", " :year)))))))))))))
-		((and (eq branch nil) is-current-user)
-		 (htm
-		  (:div :class "well"
-			(:h2 "Welcome to your new repository.")
-            (:p "First things first, if you haven't already done so,
+        (with-repository ((repository-real-path repository))
+          (let* ((branches (git-list :reference))
+                 (branch (selected-branch repository branches branch)))
+            (render-user-page (user :title
+                                    (htm (:a :href (url-join (slot-value user 'username))
+                                             (str (user-username user)))
+                                         (:span (str "/"))
+                                         (str (repository-name repository)))
+                                    :subtitle ""
+                                    :extra-head ((:script :type "text/javascript" :src "/static/psos.js")
+                                                 (:script :type "text/javascript" :src "/static/repository.js")))
+              (cond
+                (branch
+                 (htm
+                  (:script :type "text/javascript"
+                           (str
+                            (ps:ps
+                              (defun select-branch (branch)
+                                (setf (ps:getprop window 'location 'href)
+                                      (concatenate 'string
+                                                   (ps:lisp (url-join username repository-name "branch"))
+                                                   branch "/"))))))
+                  (:div :class "project-bar"
+                        (:select :id "branch"
+                                 :onchange (ps:ps-inline (select-branch
+                                                          (ps:@ this options
+                                                                (ps:@ this selected-index) value)))
+                                 (mapcar #'(lambda (x)
+                                             (htm
+                                              (:option
+                                               :value (remove-ref-path x)
+                                               :selected (when (equal x branch) "true")
+                                               (str (remove-ref-path x)))))
+                                         (git-list :reference))))
+                  (:ol :id "commit-list" :class "commit-list"
+                       :user username :repository repository-name
+                       :branch (remove-ref-path branch)
+                       ;; (let ((count 0))
+                       ;;   (with-git-revisions (commit :head branch)
+                       ;;     (setf count (+ count 1))
+                       ;;     (when (> count 10) (return))
+                       ;;     (htm
+                       ;;      (:li :id (git-id commit)
+                       ;;           (let* ((author (git-author commit))
+                       ;;                  (name (getf author :name))
+                       ;;                  (email (getf author :email))
+                       ;;                  (timestamp (getf author :time)))
+                       ;;             (htm
+                       ;;              (:img :src (gravatar-url email :size 40))
+                       ;;              (:p (str (git-message commit)))
+                       ;;              (:span :class "author" (str name))
+                       ;;              (:span :class "date"
+                       ;;                     (str
+                       ;;                      (format-timestring nil timestamp :format
+                       ;;                                         '(:long-month " " :day ", " :year))))))))))
+                       )))
+                ((and (eq branch nil) is-current-user)
+                 (htm
+                  (:div :class "well"
+                        (:h2 "Welcome to your new repository.")
+                        (:p "First things first, if you haven't already done so,
             you should set up your user preferences."
                 (:pre (format t "git config --global user.name \"~A\"
 git config --global user.email \"~A\"" (user-fullname user) (user-primary-email user))))

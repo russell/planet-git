@@ -42,12 +42,16 @@
   (:import-from #:chunga
                 #:as-keyword)
   (:import-from #:cl-git
-                #:ensure-repository-exist
-                #:commit-author
-                #:commit-message
-                #:git-reference-listall
+                #:git-open
+                #:git-init
+                #:git-id
+                #:git-author
+                #:git-message
+                #:git-list
                 #:with-repository
-                #:with-git-revisions)
+                #:with-git-revisions
+                #:revision-walk
+                #:walker-next)
   (:import-from #:cl-fad
                 #:directory-exists-p)
   (:import-from #:cl-ppcre
