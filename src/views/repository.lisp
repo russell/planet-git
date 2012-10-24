@@ -51,24 +51,24 @@
       (let* ((branches (git-list :reference))
              (branch (selected-branch repository branches head-ref))
              (walker (revision-walk (or ref branch))))
-        (princ "[")
-        (dotimes (count 10 t)
-          (let ((commit (walker-next walker)))
-            (when (not commit) (return))
-            (unless (= count 0) (princ ","))
-            (let* ((author (git-author commit))
-                   (name (getf author :name))
-                   (email (getf author :email))
-                   (timestamp (getf author :time)))
-              (encode-json-alist
-               (eval `(quote
-                       (("id" . ,(git-id commit))
-                        ("icon" . ,(gravatar-url email :size 40))
-                        ("message" . ,(git-message commit))
-                        ("name" . ,name)
-                        ("time" . ,(format-timestring nil timestamp
-                                                     :format '(:long-month " " :day ", " :year))))))))))
-        (princ "]"))))))
+        (with-array ()
+          (dotimes (count 10 t)
+            (let ((commit (git-next walker)))
+              (when (not commit) (return))
+              (let* ((author (git-author commit))
+                     (name (getf author :name))
+                     (email (getf author :email))
+                     (timestamp (getf author :time)))
+                (as-array-member ()
+                    (encode-json-alist
+                     (eval `(quote
+                             (("id" . ,(git-id commit))
+                              ("icon" . ,(gravatar-url email :size 40))
+                              ("message" . ,(git-message commit))
+                              ("name" . ,name)
+                              ("time" . ,(format-timestring nil timestamp
+                                                            :format '(:long-month " " :day ", " :year)))))))))))
+          ))))))
 
 
 (define-rest-handler (repository-key-access

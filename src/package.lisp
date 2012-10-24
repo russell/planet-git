@@ -38,6 +38,8 @@
                 #:component-system
                 #:find-system)
   (:import-from #:json
+                #:with-array
+                #:as-array-member
                 #:encode-json-alist)
   (:import-from #:chunga
                 #:as-keyword)
