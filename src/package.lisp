@@ -53,7 +53,7 @@
                 #:with-repository
                 #:with-git-revisions
                 #:revision-walk
-                #:walker-next)
+                #:git-next)
   (:import-from #:cl-fad
                 #:directory-exists-p)
   (:import-from #:cl-ppcre
