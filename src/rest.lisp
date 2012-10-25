@@ -60,7 +60,7 @@ DEFINE-REST-HANDLER.")
                                                                 default-request-type)))
          ,(if args
               `(register-groups-bind ,args
-                   (,uri (request-uri*))
+                   (,uri (script-name*))
                  ,@body)
               `(progn ,@body))))))
 
