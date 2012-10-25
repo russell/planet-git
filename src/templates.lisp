@@ -54,84 +54,84 @@ which it is in fact.  Useful for defining syntactic constructs"
 	     (:script :type "text/javascript" :src "/static/js/bootstrap.js")
          ,@extra-head)
 	    (:body
-	     (:div :class "navbar"
-		   (:div :class "navbar-inner"
-			 (:div :class "container"
-			       (:a :class "brand" :href "/" "Planet Git")
-			       (:ul :class "nav")
-			       (:ul :class "nav pull-right"
-				    (if (loginp)
-					(let ((username (slot-value (loginp) 'username)))
-					  (htm
-					   (:li (:a :href (url-join username) (str username)))
-					   (:li (:a :href (url-join username "settings") (str "Settings")))
-					   (:li (:a :href "/logout" "Logout")))))
-				    (unless (loginp)
-				      (htm
-				       (modal ("login-modal"
-                               "Login"
-                               :buttons ((:a :href "#" :class "btn btn-primary"
-                                             :onclick (ps:ps-inline
-                                                       ($ "#login-modal-form"
-                                                                  (submit)))
-
-                                             "Login")
-                                         (:a :href "#" :class "btn"
-                                             :onclick (ps:ps-inline
-                                                       ($ "#login-modal"
-                                                                  (modal "hide")))
-                                             "Cancel")))
-                         (:form :id "login-modal-form" :class "login-form"
-                                :action "/login" :method "post"
-                                (:ul
-                                 (:input :type "hidden" :name "came-from"
-                                         :value (request-uri*))
-                                 (:li "Username or Email:")
-                                 (:li (:input :type "text" :name "login"))
-                                 (:li "Password:")
-                                 (:li (:input :type "password" :name "password")))
-                                (:input :type "submit"
-                                        :style "visibility: hidden;"
-                                        :name "create"
-                                        :value "Create"))
-                         (:script :type "text/javascript"
-                                  (str
-                                   (ps:ps
-                                     (doc-ready
-                                      ($ "#login-modal"
-                                         (on "shown"
-                                             (lambda ()
-                                               (console.log "hello")
-                                               ($ "#login-modal-form input[name=\"login\"]"
-                                                  (focus))))))))))
-				       (:li (:a :href "/register" "Register"))
-				       (:li (:a :href "/login"
-                                :data-target "#login-modal"
-                                :data-toggle "modal"
-                                "Login"))))))))
 	     (:div :class "container"
-		   (:div :class "content"
-			 (:div :class "page-header"
-			       ,(if page-header
-                        `(htm ,page-header)
-                        `(htm (:h1 ,title
-                                          (:small ,subtitle)))))
-			 (:div :class "row"
-			       (:div :class ,body-class
-			       ,@body))))))))
+          (:div :class "navbar"
+                (:div :class "navbar-inner"
+                      (:div :class "container"
+                            (:a :class "brand" :href "/" "Planet Git")
+                            (:ul :class "nav")
+                            (:ul :class "nav pull-right"
+                                 (if (loginp)
+                                     (let ((username (slot-value (loginp) 'username)))
+                                       (htm
+                                        (:li (:a :href (url-join username) (str username)))
+                                        (:li (:a :href (url-join username "settings") (str "Settings")))
+                                        (:li (:a :href "/logout" "Logout")))))
+                                 (unless (loginp)
+                                   (htm
+                                    (modal ("login-modal"
+                                            "Login"
+                                            :buttons ((:a :href "#" :class "btn btn-primary"
+                                                          :onclick (ps:ps-inline
+                                                                       ($ "#login-modal-form"
+                                                                          (submit)))
+
+                                                          "Login")
+                                                      (:a :href "#" :class "btn"
+                                                          :onclick (ps:ps-inline
+                                                                       ($ "#login-modal"
+                                                                          (modal "hide")))
+                                                          "Cancel")))
+                                      (:form :id "login-modal-form" :class "login-form"
+                                             :action "/login" :method "post"
+                                             (:ul
+                                              (:input :type "hidden" :name "came-from"
+                                                      :value (request-uri*))
+                                              (:li "Username or Email:")
+                                              (:li (:input :type "text" :name "login"))
+                                              (:li "Password:")
+                                              (:li (:input :type "password" :name "password")))
+                                             (:input :type "submit"
+                                                     :style "visibility: hidden;"
+                                                     :name "create"
+                                                     :value "Create"))
+                                      (:script :type "text/javascript"
+                                               (str
+                                                (ps:ps
+                                                  (doc-ready
+                                                   ($ "#login-modal"
+                                                      (on "shown"
+                                                          (lambda ()
+                                                            (console.log "hello")
+                                                            ($ "#login-modal-form input[name=\"login\"]"
+                                                               (focus))))))))))
+                                    (:li (:a :href "/register" "Register"))
+                                    (:li (:a :href "/login"
+                                             :data-target "#login-modal"
+                                             :data-toggle "modal"
+                                             "Login"))))))))
+          (:div :class "content"
+                (:div :class "page-header"
+                      ,(if page-header
+                           `(htm ,page-header)
+                           `(htm (:h1 ,title
+                                      (:small ,subtitle)))))
+                (:div :class "row"
+                      (:div :class ,body-class
+                            ,@body))))))))
 
 
 (defmacro render-user-page ((user &key title subtitle (body-class "span10") extra-header extra-head) &body body)
   `(render-standard-page
        (:body-class ,body-class
         :title (str (slot-value ,user 'username))
+        :extra-head ,extra-head
         :page-header
         ((:img :src (user-gravatar-url ,user :size 40))
          (:h1 ,(or title `(:a :href (url-join (slot-value ,user 'username))
                            (str (slot-value ,user 'username))))
          (:small ,(or subtitle `(str (slot-value ,user 'fullname)))))
-         ,(when extra-header extra-header)
-         ,extra-head))
+         ,(when extra-header extra-header)))
      ,@body))
 
 
