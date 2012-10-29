@@ -34,17 +34,19 @@
       ((ref (concatenate 'string "refs/heads/" branch)))
     (repository-page username repository-name :branch ref)))
 
+
 (define-rest-handler (repository-branch-commits-json
-                      :uri "^/([^/]+)/([^/]+)/branch/([^/]+)/?$"
+                      :uri "^/([^/]+)/([^/]+)/commits/([^/]+)/?$"
                       :args (username repository-name branch)
                       :content-type "application/json")
-    ()
-  (let* ((ref (concatenate 'string "refs/heads/" branch))
+    ((ref :parameter-type 'string :request-type :both))
+  (let* ((head-ref (concatenate 'string "refs/heads/" branch))
          (user (car (select-dao 'login (:= 'username username))))
          (repository (car (select-dao
                               'repository (:and
                                            (:= 'owner-id (slot-value user 'id))
                                            (:= 'name repository-name))))))
+
     (setf (content-type*) "application/json")
     (with-html-output-to-string (*standard-output*)
 	(with-repository ((repository-real-path repository))
@@ -62,13 +64,12 @@
                 (as-array-member ()
                     (encode-json-alist
                      (eval `(quote
-                             (("id" . ,(git-id commit))
+                             (("id" . ,(git-name commit))
                               ("icon" . ,(gravatar-url email :size 40))
                               ("message" . ,(git-message commit))
                               ("name" . ,name)
                               ("time" . ,(format-timestring nil timestamp
-                                                            :format '(:long-month " " :day ", " :year)))))))))))
-          ))))))
+                                                            :format '(:long-month " " :day ", " :year)))))))))))))))))
 
 
 (define-rest-handler (repository-key-access
@@ -127,19 +128,73 @@
                      :name "commit" :type "paren")
       (component-pathname (component-system (find-system :planet-git))))))
 
+(define-easy-handler (psos-js :uri "/static/psos.js")
+    ()
+    (setf (content-type*) "text/javascript")
+  (with-output-to-string (js-output)
+    (compile-script-system :paren-psos :output-stream js-output :pretty-print nil)))
+
+(def-who-macro* widget-repository-commits (username repository-name branch)
+  (htm
+   (:script :type "text/javascript"
+            (str
+             (ps:ps
+               (defun select-branch (branch)
+                 (setf (ps:getprop window 'location 'href)
+                       (concatenate 'string
+                                    (ps:lisp (url-join username repository-name "branch"))
+                                    branch "/"))))))
+   (:div :class "project-bar"
+         (:select :id "branch"
+                  :onchange (ps:ps-inline (select-branch
+                                           (ps:@ this options
+                                                 (ps:@ this selected-index) value)))
+                  (mapcar #'(lambda (x)
+                              (htm
+                               (:option
+                                :value (remove-ref-path x)
+                                :selected (when (equal x branch) "true")
+                                (str (remove-ref-path x)))))
+                          (git-list :reference))))
+   (:ol :id "commit-list" :class "commit-list"
+        :user username :repository repository-name
+        :branch (remove-ref-path branch)
+        ;; this should probably be added back once i
+        ;; can find a way to get the ajax interface to
+        ;; play nice with a non-ajax interface.
+
+        ;; (let ((count 0))
+        ;;   (with-git-revisions (commit :head branch)
+        ;;     (setf count (+ count 1))
+        ;;     (when (> count 10) (return))
+        ;;     (htm
+        ;;      (:li :id (git-id commit)
+        ;;           (let* ((author (git-author commit))
+        ;;                  (name (getf author :name))
+        ;;                  (email (getf author :email))
+        ;;                  (timestamp (getf author :time)))
+        ;;             (htm
+        ;;              (:img :src (gravatar-url email :size 40))
+        ;;              (:p (str (git-message commit)))
+        ;;              (:span :class "author" (str name))
+        ;;              (:span :class "date"
+        ;;                     (str
+        ;;                      (format-timestring nil timestamp :format
+        ;;                                         '(:long-month " " :day ", " :year))))))))))
+        )))
 
 (defun repository-page (username repository-name &key branch)
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
        (repository (car (select-dao
-			 'repository (:and
-				      (:= 'owner-id (slot-value user 'id))
-				      (:= 'name repository-name)))))
+                            'repository (:and
+                                         (:= 'owner-id (slot-value user 'id))
+                                         (:= 'name repository-name)))))
        (visible (when repository (or (slot-value repository 'public)
-				     (equal (slot-value user 'username)
-					    (when (loginp) (slot-value (loginp) 'username))))))
+                                     (equal (slot-value user 'username)
+                                            (when (loginp) (slot-value (loginp) 'username))))))
        (is-current-user (when user (equal (slot-value user 'username)
-					  (when (loginp) (slot-value (loginp) 'username))))))
+                                          (when (loginp) (slot-value (loginp) 'username))))))
     (if (and visible user repository)
         (with-repository ((repository-real-path repository))
           (let* ((branches (git-list :reference))
@@ -154,64 +209,22 @@
                                                  (:script :type "text/javascript" :src "/static/repository.js")))
               (cond
                 (branch
-                 (htm
-                  (:script :type "text/javascript"
-                           (str
-                            (ps:ps
-                              (defun select-branch (branch)
-                                (setf (ps:getprop window 'location 'href)
-                                      (concatenate 'string
-                                                   (ps:lisp (url-join username repository-name "branch"))
-                                                   branch "/"))))))
-                  (:div :class "project-bar"
-                        (:select :id "branch"
-                                 :onchange (ps:ps-inline (select-branch
-                                                          (ps:@ this options
-                                                                (ps:@ this selected-index) value)))
-                                 (mapcar #'(lambda (x)
-                                             (htm
-                                              (:option
-                                               :value (remove-ref-path x)
-                                               :selected (when (equal x branch) "true")
-                                               (str (remove-ref-path x)))))
-                                         (git-list :reference))))
-                  (:ol :id "commit-list" :class "commit-list"
-                       :user username :repository repository-name
-                       :branch (remove-ref-path branch)
-                       ;; (let ((count 0))
-                       ;;   (with-git-revisions (commit :head branch)
-                       ;;     (setf count (+ count 1))
-                       ;;     (when (> count 10) (return))
-                       ;;     (htm
-                       ;;      (:li :id (git-id commit)
-                       ;;           (let* ((author (git-author commit))
-                       ;;                  (name (getf author :name))
-                       ;;                  (email (getf author :email))
-                       ;;                  (timestamp (getf author :time)))
-                       ;;             (htm
-                       ;;              (:img :src (gravatar-url email :size 40))
-                       ;;              (:p (str (git-message commit)))
-                       ;;              (:span :class "author" (str name))
-                       ;;              (:span :class "date"
-                       ;;                     (str
-                       ;;                      (format-timestring nil timestamp :format
-                       ;;                                         '(:long-month " " :day ", " :year))))))))))
-                       )))
+                 (widget-repository-commits username repository-name branch))
                 ((and (eq branch nil) is-current-user)
                  (htm
                   (:div :class "well"
                         (:h2 "Welcome to your new repository.")
                         (:p "First things first, if you haven't already done so,
             you should set up your user preferences."
-                (:pre (format t "git config --global user.name \"~A\"
+                            (:pre (format t "git config --global user.name \"~A\"
 git config --global user.email \"~A\"" (user-fullname user) (user-primary-email user))))
-            (:p "If you are adding an existing repository begin by,"
-                (:pre (format t "cd existing_repository
+                        (:p "If you are adding an existing repository begin by,"
+                            (:pre (format t "cd existing_repository
 git remote add origin ~A:~A/~A
 git push origin master" *git-ssh-host* (user-username user) (repository-name repository)))))))
-		((eq branch nil)
-		 (htm
-		  (:div :class "well"
-			(:h2 "Under Construction."))))
-		(t (setf (return-code*) +http-not-found+))))))
-	(setf (return-code*) +http-not-found+))))
+                ((eq branch nil)
+                 (htm
+                  (:div :class "well"
+                        (:h2 "Under Construction."))))
+                (t (setf (return-code*) +http-not-found+))))))
+        (setf (return-code*) +http-not-found+))))

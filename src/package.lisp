@@ -47,6 +47,7 @@
                 #:git-open
                 #:git-init
                 #:git-id
+                #:git-name
                 #:git-author
                 #:git-message
                 #:git-list
@@ -76,6 +77,8 @@
                 #:format-timestring)
   (:import-from #:md5
                 #:md5sum-sequence)
+  (:import-from #:parenscript.asdf
+                #:compile-script-system)
   ;; hunchentoot:shutdown is shadowed by ours
   (:shadow #:shutdown)
   (:export

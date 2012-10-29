@@ -84,7 +84,13 @@
        :font-size "smaller"))
      (("img")
       (:float "left"
-       :margin-left "-40px")))
+       :margin-left "-40px"))
+     (("li#throbber")
+      (:text-align "center"))
+     (("li#throbber img")
+      (:float "none"
+       :margin "50px auto"
+       :padding-left "0")))
 
     ((".project") nil
      (("h3")

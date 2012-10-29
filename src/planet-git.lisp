@@ -45,7 +45,7 @@
        (list "^/[^/]+/[^/]+/$" t "text/html" 'repository-home-page)
        (list "^/[^/]+/[^/]+/key/[^/]+/$" t "text/html" 'repository-key-access)
        (list "^/[^/]+/[^/]+/branch/[^/]+/$" t "text/html" 'repository-branch-page)
-       (list "^/[^/]+/[^/]+/branch/[^/]+/$" t "application/json" 'repository-branch-commits-json)))
+       (list "^/[^/]+/[^/]+/commits/[^/]+/$" t "application/json" 'repository-branch-commits-json)))
 
 (setq *dispatch-table*
  (list

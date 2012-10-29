@@ -30,5 +30,5 @@
       (ready (lambda ()
                ,@body))))
 
-(defpsmacro concat (&rest strings)
+(defpsmacro concat-strings (&rest strings)
   `(concatenate 'string ,@strings))

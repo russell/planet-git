@@ -16,29 +16,94 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package #:planet-git.ps)
+(in-package :planet-git.ps)
 
-(defun get-commits (user repository branch &optional from-reference success-fn)
+
+
+(defun get-data-attribute (element name)
+  (let ((elem (if (and element.length
+                       (> (length element) 0))
+                  (getprop element 0)
+                  element)))
+  (when elem.attributes
+    (dolist (attr elem.attributes)
+      (if (equal (methcall 'index-of attr.name "data-") 0)
+          (return-from get-data-attribute attr)))))
+  null)
+
+(defun data (elem name)
+  (let ((attr (get-data-attribute elem name)))
+    (if attr
+        attr.value
+        null)))
+
+(defsetf data (elem name) (data)
+  `(progn
+     (setf (chain ,elem ,name) ,data)
+     ,data))
+
+(defun cdr (array)
+  (methcall :slice array 1))
+
+(defun subseq (string start &optional end)
+  (if end
+      (let ((end-offset (- end start)))
+        (methcall :substr string start end))
+      (methcall :substr string start)))
+
+(defun get-commits (user repository branch &key from-reference success-fn)
   "Callback to the planet and retrieve commits for a repository."
-  (let ((url (concat "/" user "/" repository "/branch/" branch "/"
-                          (if from-reference
-                              (concat "?ref=" from-reference)
-                              ""))))
+  (let ((url (concat-strings "/" user "/" repository "/commits/" branch "/"
+                             (if from-reference
+                                 (concat-strings "?ref=" from-reference)
+                                 ""))))
   (ajax url :headers (create :accept "application/json")
             :dataType "json"
             :success success-fn)))
 
 (defun commit-template (commit)
   "Take a commit object and return HTML representation"
-    (ps:who-ps-html
-     (:li
-      (:img :src (ps:getprop commit :icon) :size 40)
-      (:p (ps:getprop commit :message))
-      (:span :class "author" (ps:getprop commit :name))
-      (:span :class "date" (ps:getprop commit :time)))))
+  (let ((message (ps:getprop commit :message)))
+    (who-ps-html
+     (:li :id (getprop commit :id) :data-sha (getprop commit :id)
+      (:img :src (getprop commit :icon))
+      (:p (if (> (length message) 50)
+              (concat-strings (subseq (ps:getprop commit :message) 0 47) "...")
+              message))
+      (:span :class "author" (getprop commit :name))
+      (:span :class "date" (getprop commit :time))))))
 
 (defun add-commits-to (selector)
-  (lambda (data text-status xml-http-request)
-    (let ((commit-list ($ selector)))
-    (dolist (commit data)
-      (chain commit-list (append (commit-template commit)))))))
+  (lambda (array text-status xml-http-request)
+    (let ((commit-list ($ selector))
+          (first (getprop array 0)))
+      (if (equal (getprop first :id)
+                 (data (chain commit-list (children) (last)) "sha"))
+          (methcall :shift array))
+      (dolist (commit array)
+        (chain commit-list (append (commit-template commit)))))))
+
+(defun load-more-commits (selector &optional (success-fn (add-commits-to selector)))
+  (let* ((commit-list ($ selector)))
+    (lambda ()
+      (get-commits
+       (methcall :attr commit-list "user")
+       (methcall :attr commit-list "repository")
+       (methcall :attr commit-list "branch")
+       :success-fn success-fn
+       :from-reference (data (chain commit-list (children) (last)) "sha")))))
+
+(doc-ready
+ (let* ((selector "#commit-list")
+       (commit-list ($ selector)))
+   (methcall :append commit-list (who-ps-html
+                                  (:li :id "throbber"
+                                       (:img :src "/static/img/throbber.gif"))))
+   ((load-more-commits selector
+    (lambda (data text-status xml-http-request)
+      (methcall :empty commit-list)
+      ((add-commits-to selector) data text-status xml-http-request)
+      (methcall :append (methcall :parent commit-list)
+                (who-ps-html
+                 (:button :id "load-more" :class "btn" "Load More")))
+      ($ "#load-more" (click (load-more-commits selector))))))))
