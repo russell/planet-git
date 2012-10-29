@@ -18,25 +18,82 @@
 
 (in-package #:planet-git)
 
-
-(defmacro def-who-macro (name (&rest args) &optional documentation pseudo-html-form)
+(defmacro def-who-macro (name (&rest args) &body pseudo-html-form)
   "A macro for use with CL-WHO's WITH-HTML-OUTPUT."
-  (let ((documentation (if (stringp documentation) documentation ""))
-	(pseudo-html-form (if (stringp documentation) pseudo-html-form documentation)))
+  (let ((documentation (if (stringp (car pseudo-html-form)) (car pseudo-html-form) ""))
+        (pseudo-html-form (if (stringp (car pseudo-html-form)) (cdr pseudo-html-form) pseudo-html-form)))
     `(defmacro ,name (,@args)
        ,documentation
        `(with-html-output (*standard-output* nil)
-	  ,,pseudo-html-form))))
+          ,,@pseudo-html-form))))
 
-(defmacro def-who-macro* (name (&rest args) &optional documentation pseudo-html-form)
+(defmacro def-who-macro* (name (&rest args) &body pseudo-html-form)
   "Who-macro, which evaluates its arguments (like an ordinary function,
 which it is in fact.  Useful for defining syntactic constructs"
-  (let ((documentation (if (stringp documentation) documentation ""))
-	(pseudo-html-form (if (stringp documentation) pseudo-html-form documentation)))
+  (let ((documentation (if (stringp (car pseudo-html-form)) (car pseudo-html-form) ""))
+        (pseudo-html-form (if (stringp (car pseudo-html-form)) (cdr pseudo-html-form) pseudo-html-form)))
     `(defun ,name (,@args)
        ,documentation
        (with-html-output (*standard-output* nil)
-	 ,pseudo-html-form))))
+         ,@pseudo-html-form))))
+
+(def-who-macro* widget-navbar ()
+  (htm
+   (:div :class "navbar"
+         (:div :class "navbar-inner"
+               (:div :class "container"
+                     (:a :class "brand" :href "/" "Planet Git")
+                     (:ul :class "nav")
+                     (:ul :class "nav pull-right"
+                          (if (loginp)
+                              (let ((username (slot-value (loginp) 'username)))
+                                (htm
+                                 (:li (:a :href (url-join username) (str username)))
+                                 (:li (:a :href (url-join username "settings") (str "Settings")))
+                                 (:li (:a :href "/logout" "Logout")))))
+                          (unless (loginp)
+                            (htm
+                             (modal ("login-modal"
+                                     "Login"
+                                     :buttons ((:a :href "#" :class "btn btn-primary"
+                                                   :onclick (ps:ps-inline
+                                                                ($ "#login-modal-form"
+                                                                   (submit)))
+
+                                                   "Login")
+                                               (:a :href "#" :class "btn"
+                                                   :onclick (ps:ps-inline
+                                                                ($ "#login-modal"
+                                                                   (modal "hide")))
+                                                   "Cancel")))
+                               (:form :id "login-modal-form" :class "login-form"
+                                      :action "/login" :method "post"
+                                      (:ul
+                                       (:input :type "hidden" :name "came-from"
+                                               :value (request-uri*))
+                                       (:li "Username or Email:")
+                                       (:li (:input :type "text" :name "login"))
+                                       (:li "Password:")
+                                       (:li (:input :type "password" :name "password")))
+                                      (:input :type "submit"
+                                              :style "visibility: hidden;"
+                                              :name "create"
+                                              :value "Create"))
+                               (:script :type "text/javascript"
+                                        (str
+                                         (ps:ps
+                                           (doc-ready
+                                            ($ "#login-modal"
+                                               (on "shown"
+                                                   (lambda ()
+                                                     (console.log "hello")
+                                                     ($ "#login-modal-form input[name=\"login\"]"
+                                                        (focus))))))))))
+                             (:li (:a :href "/register" "Register"))
+                             (:li (:a :href "/login"
+                                      :data-target "#login-modal"
+                                      :data-toggle "modal"
+                                      "Login"))))))))))
 
 (defmacro render-standard-page ((&key title (subtitle "") (body-class "span10") page-header extra-head) &body body)
   "The base page template"
@@ -55,61 +112,7 @@ which it is in fact.  Useful for defining syntactic constructs"
          ,@extra-head)
 	    (:body
 	     (:div :class "container"
-          (:div :class "navbar"
-                (:div :class "navbar-inner"
-                      (:div :class "container"
-                            (:a :class "brand" :href "/" "Planet Git")
-                            (:ul :class "nav")
-                            (:ul :class "nav pull-right"
-                                 (if (loginp)
-                                     (let ((username (slot-value (loginp) 'username)))
-                                       (htm
-                                        (:li (:a :href (url-join username) (str username)))
-                                        (:li (:a :href (url-join username "settings") (str "Settings")))
-                                        (:li (:a :href "/logout" "Logout")))))
-                                 (unless (loginp)
-                                   (htm
-                                    (modal ("login-modal"
-                                            "Login"
-                                            :buttons ((:a :href "#" :class "btn btn-primary"
-                                                          :onclick (ps:ps-inline
-                                                                       ($ "#login-modal-form"
-                                                                          (submit)))
-
-                                                          "Login")
-                                                      (:a :href "#" :class "btn"
-                                                          :onclick (ps:ps-inline
-                                                                       ($ "#login-modal"
-                                                                          (modal "hide")))
-                                                          "Cancel")))
-                                      (:form :id "login-modal-form" :class "login-form"
-                                             :action "/login" :method "post"
-                                             (:ul
-                                              (:input :type "hidden" :name "came-from"
-                                                      :value (request-uri*))
-                                              (:li "Username or Email:")
-                                              (:li (:input :type "text" :name "login"))
-                                              (:li "Password:")
-                                              (:li (:input :type "password" :name "password")))
-                                             (:input :type "submit"
-                                                     :style "visibility: hidden;"
-                                                     :name "create"
-                                                     :value "Create"))
-                                      (:script :type "text/javascript"
-                                               (str
-                                                (ps:ps
-                                                  (doc-ready
-                                                   ($ "#login-modal"
-                                                      (on "shown"
-                                                          (lambda ()
-                                                            (console.log "hello")
-                                                            ($ "#login-modal-form input[name=\"login\"]"
-                                                               (focus))))))))))
-                                    (:li (:a :href "/register" "Register"))
-                                    (:li (:a :href "/login"
-                                             :data-target "#login-modal"
-                                             :data-toggle "modal"
-                                             "Login"))))))))
+               (widget-navbar)
           (:div :class "content"
                 (:div :class "page-header"
                       ,(if page-header
