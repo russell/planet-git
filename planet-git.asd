@@ -33,7 +33,10 @@
                #:database-migrations
                #:parenscript
                #:paren-files
+               #:paren-psos
                #:cl-fad
+               #:split-sequence
+               #:puri
                #:md5)
   :components ((:static-file "planet-git.asd")
                (:module "src"
@@ -42,6 +45,7 @@
                         ((:file "package")
                          (:file "config" :depends-on ("package"))
                          (:file "compat")
+                         (:file "traverser")
                          (:file "utils")
                          (:file "easy-handlers")
                          (:file "rest")
@@ -65,4 +69,4 @@
                                    (:file "registration")
                                    (:file "repository")))
                          (:file "css")
-                         (:file "planet-git" :depends-on ("views"))))))
+                         (:file "planet-git" :depends-on ("views" "traverser"))))))

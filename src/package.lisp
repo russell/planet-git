@@ -32,6 +32,7 @@
         #:planet-git.ps)
   (:import-from #:anaphora
                 #:awhen
+                #:aif
                 #:it)
   (:import-from #:asdf
                 #:component-pathname
@@ -79,6 +80,11 @@
                 #:md5sum-sequence)
   (:import-from #:parenscript.asdf
                 #:compile-script-system)
+  (:import-from #:split-sequence
+                #:split-sequence)
+  (:import-from #:puri
+                #:parse-uri
+                #:uri-path)
   ;; hunchentoot:shutdown is shadowed by ours
   (:shadow #:shutdown)
   (:export
