@@ -48,8 +48,7 @@
                             (dolist (branch sub-tree1)
                               (awhen (walk-uri uri-rest branch)
                                 (return it))))))))))
-      (when (> (length path) 1)
-        (cons (walk-uri path tree) (list interesting-parts))))))
+      (cons (walk-uri path tree) (list interesting-parts)))))
 
 ;; (traverse-path '("" "russell" "repository"))
 ;; ('REPOSITORY-HOME-PAGE (:REPOSITORY "repository" :USER "russell"))

@@ -32,6 +32,10 @@
        (:branch 'repository-branch-page))
       ("commits" 'repository-commits)))))
 
+(test traverse-path-root
+  (is (equal '('home-page ())
+             (planet-git::traverse-path '("") test-traversal-path))))
+
 (test traverse-path
   (is (equal '('repository-home-page (:repository "repository" :user "russell"))
              (planet-git::traverse-path '("" "russell" "repository") test-traversal-path))))
