@@ -14,7 +14,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;;; rest.lisp
 
 (in-package #:planet-git)
 
@@ -30,10 +29,10 @@
       ("branch" 'repository-branch-page)
       ("commits" 'repository-commits)))))
 
-(defun traverse-path (path)
+(defun traverse-path (path &optional (tree *traversal-path*))
   (let (interesting-parts)
-    (labels ((walk-uri (sub-uri tree)
-               (destructuring-bind (segment func &rest sub-tree) tree
+    (labels ((walk-uri (sub-uri sub-tree)
+               (destructuring-bind (segment func &rest sub-tree1) sub-tree
                  (let ((uri-segment (car sub-uri))
                        (uri-rest (cdr sub-uri)))
                    (when (or (null segment) (equal segment uri-segment) (symbolp segment))
@@ -46,13 +45,13 @@
                              nil))
                           it
                           (progn
-                            (dolist (branch sub-tree)
+                            (dolist (branch sub-tree1)
                               (awhen (walk-uri uri-rest branch)
                                 (return it))))))))))
       (when (> (length path) 1)
-        (cons (walk-uri path *traversal-path*) (list interesting-parts))))))
+        (cons (walk-uri path tree) (list interesting-parts))))))
 
-(traverse-path '("" "russell" "repository"))
+;; (traverse-path '("" "russell" "repository"))
 ;; ('REPOSITORY-HOME-PAGE (:REPOSITORY "repository" :USER "russell"))
 
 (defun dispatch-handlers (request)

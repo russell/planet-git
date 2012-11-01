@@ -46,7 +46,7 @@
     the git events.  It needs to be added to the .ssh/authorized_keys
     of the git user.  This will need to be done manually until this is
     correctly implemented.
-    
+
     command="KEY_ID=4
     ./git-shell.lisp",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty
     ssh-rsa AAAAB... russell@marvin
@@ -101,6 +101,9 @@
     ln -s ~user/projects/planet-git .
     cd -
     #+END_SRC
+*** Debugging
+
+    (setf hunchentoot:*catch-errors-p* nil)
 
 *** Definitions
 
