@@ -29,6 +29,7 @@
       ("branch" 'repository-branch-page)
       ("commits" 'repository-commits)))))
 
+
 (defun traverse-path (path &optional (tree *traversal-path*))
   (let (interesting-parts)
     (labels ((walk-uri (sub-uri sub-tree)
@@ -48,13 +49,27 @@
                             (dolist (branch sub-tree1)
                               (awhen (walk-uri uri-rest branch)
                                 (return it))))))))))
-      (cons (walk-uri path tree) (list interesting-parts)))))
+      (cons (walk-uri path tree) interesting-parts))))
 
-;; (traverse-path '("" "russell" "repository"))
-;; ('REPOSITORY-HOME-PAGE (:REPOSITORY "repository" :USER "russell"))
 
 (defun dispatch-handlers (request)
   (let ((path (split-sequence #\/ (uri-path (parse-uri (script-name request))))))
-    ;; traverse
-    ;; resolve and call returned function.
-    ))
+    (traverse-path path)))
+
+
+(defclass traverser-acceptor (acceptor)
+  ()
+  (:documentation "This is the acceptor of the ``traverser'' extension
+  to the Hunchentoot framework."))
+
+(defmethod acceptor-dispatch-request ((acceptor traverser-acceptor) request)
+  "The easy request dispatcher which selects a request handler
+based on a list of individual request dispatchers all of which can
+either return a handler or neglect by returning NIL."
+  (loop :for dispatcher :in *dispatch-table*
+        :for action = (funcall dispatcher request)
+        :when action
+          :return (if (listp action)
+                      (apply (car action) (cdr action))
+                      (funcall action))
+        :finally (call-next-method)))

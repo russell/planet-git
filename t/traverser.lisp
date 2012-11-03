@@ -33,21 +33,37 @@
       ("commits" 'repository-commits)))))
 
 (test traverse-path-root
-  (is (equal '('home-page ())
+  (is (equal '('home-page)
              (planet-git::traverse-path '("") test-traversal-path))))
 
 (test traverse-path
-  (is (equal '('repository-home-page (:repository "repository" :user "russell"))
+  (is (equal '('repository-home-page :repository "repository" :user "russell")
              (planet-git::traverse-path '("" "russell" "repository") test-traversal-path))))
 
 (test traverse-path1
-  (is (equal '('user-email-page (:user "russell"))
+  (is (equal '('user-email-page :user "russell")
              (planet-git::traverse-path '("" "russell" "settings" "email") test-traversal-path))))
 
 (test traverse-path2
-  (is (equal '('repository-branch-page (:branch "master" :repository "repository" :user "russell"))
+  (is (equal '('repository-branch-page :branch "master" :repository "repository" :user "russell")
              (planet-git::traverse-path '("" "russell" "repository" "branch" "master") test-traversal-path))))
 
 (test traverse-path3
-  (is (equal '('repository-branch-page (:repository "repository" :user "russell"))
+  (is (equal '('repository-branch-page :repository "repository" :user "russell")
              (planet-git::traverse-path '("" "russell" "repository" "branch") test-traversal-path))))
+
+(defclass mock-request ()
+  ((script-name
+    :initarg :script-name
+    :initform nil
+    :reader script-name)))
+
+(defmacro with-mock-request ((&rest args) &body body)
+  `(let ((hunchentoot:*request* (make-instance 'mock-request ,@args)))
+     ,@body))
+
+(test traverser-dispatch
+  (let ((planet-git::*traversal-path* test-traversal-path))
+    (with-mock-request (:script-name "/russell/cl-git/branch/master")
+      (is (equal '('repository-branch-page :branch "master" :repository "cl-git" :user "russell")
+                 (planet-git::dispatch-handlers hunchentoot:*request*))))))
