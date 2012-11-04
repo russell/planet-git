@@ -28,10 +28,17 @@
 	      (:h3 :class "name"
 		   (str (slot-value ,user 'username)))))))
 
+(defgeneric home-page (method content-type))
 
-(defun home-page ()
+(defmethod home-page ((method (eql :get)) (content-type (eql :html)))
   (render-standard-page (:title "Planet Git"
                                 :subtitle "a bad clone of github or gitorious.")
 	    (let ((users (select-dao 'login)))
           (loop :for user :in users
                :do (user-item-fragment user)))))
+
+(defmethod home-page ((method (eql :get)) (content-type (eql :json)))
+  (let ((users (select-dao 'login)))
+    (with-array ()
+        (loop :for user :in users
+              :do (encode-json user)))))

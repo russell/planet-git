@@ -67,3 +67,9 @@
     (with-mock-request (:script-name "/russell/cl-git/branch/master")
       (is (equal '('repository-branch-page :branch "master" :repository "cl-git" :user "russell")
                  (planet-git::dispatch-handlers hunchentoot:*request*))))))
+
+(test traverser-dispatch1
+  (let ((planet-git::*traversal-path* test-traversal-path))
+    (with-mock-request (:script-name "/")
+      (is (equal '('home-page)
+                 (planet-git::dispatch-handlers hunchentoot:*request*))))))

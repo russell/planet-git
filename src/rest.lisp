@@ -20,12 +20,16 @@
 
 ;; this module provides macros for rest like handlers
 
-;;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-(defun request-accepts* (&optional (request *request*))
+
+(defmethod request-accepts ((request request))
   (let* ((header (cl-ppcre:split ";" (header-in "accept" request)))
          (content-types (cl-ppcre:split "," (car header)))
          (options (cdr header)))
     content-types))
+
+;;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+(defun request-accepts* (&optional (request *request*))
+  (request-accepts request))
 
 (defparameter *rest-handler-alist* nil
   "An alist of \(URI acceptor-names function) lists defined by

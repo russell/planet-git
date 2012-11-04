@@ -35,7 +35,6 @@
 
 (setq *rest-handler-alist*
       (list
-       (list "^/?$" t "text/html" 'home-page)
        (list "^/register?$" t "text/html" 'register-page)
        (list "^/(\\w+)/settings/?$" t "text/html" 'user-settings-page)
        (list "^/(\\w+)/settings/email/(\\w+)/delete/?$" t "text/html" 'user-email-delete)
@@ -49,6 +48,7 @@
 
 (setq *dispatch-table*
  (list
+  #'dispatch-traverser-handlers
   #'dispatch-easy-handlers
   #'dispatch-rest-handlers
   (create-prefix-dispatcher "/static/base.css" #'base-css)
@@ -110,6 +110,17 @@
   (:method ((user login))
            (car (select-dao 'email (:and (:= 'user-id (id user))
                                          (:= 'primary t))))))
+
+(defmethod encode-json ((user login)
+                        &optional (stream *json-output*))
+  "Write the JSON representation of the user to STREAM (or to
+   (branch :col-type (or db-n*JSON-OUTPUT*)."
+  (with-object (stream)
+    (encode-object-member 'username (user-username user) stream)
+    (encode-object-member 'fullname (user-fullname user) stream)
+    (encode-object-member 'location (user-fullname user) stream)
+    (encode-object-member 'photo (user-gravatar-url user) stream)))
+
 
 (defgeneric user-gravatar-url (user &key size))
 

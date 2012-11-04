@@ -39,7 +39,11 @@
                 #:component-system
                 #:find-system)
   (:import-from #:json
+                #:*json-output*
+                #:encode-json
+                #:encode-object-member
                 #:with-array
+                #:with-object
                 #:as-array-member
                 #:encode-json-alist)
   (:import-from #:chunga

@@ -144,7 +144,7 @@ specified CONFIG-PATH of from the project root."
                     *db-host*
                     :port *db-port*)
   (create-tables)
-  (setf *httpd* (start (make-instance 'easy-acceptor
+  (setf *httpd* (start (make-instance 'traverser-acceptor
                                       :port *webserver-port*)))
   (format t ";; Hunchentoot started at port: ~s.~%" *webserver-port*)
   *httpd*)

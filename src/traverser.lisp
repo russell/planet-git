@@ -18,16 +18,28 @@
 (in-package #:planet-git)
 
 (defparameter *traversal-path*
-  '(nil 'home-page
-    ("register" 'register-page)
-    (:user 'user-page
-     ("settings" 'user-settings-page
-      ("email" 'user-email-page)
-      ("key" 'user-key-page))
-     (:repository 'repository-home-page
-      ("key" 'repository-key-access)
-      ("branch" 'repository-branch-page)
-      ("commits" 'repository-commits)))))
+  '(nil home-page
+    ;; ("register" register-page)
+    ;; (:user user-page
+     ;; ("settings" user-settings-page
+     ;;  ("email" user-email-page)
+     ;;  ("key" user-key-page))
+     ;; (:repository repository-home-page
+     ;;  ("key" repository-key-access)
+     ;;  ("branch" repository-branch-page)
+     ;;  ("commits" repository-commits))
+    )
+  )
+
+(defparameter *content-type-list*
+  '(("text/html" :html)
+    ("application/json" :json)))
+
+
+(defun request-content-type (request)
+  (dolist (ct (request-accepts request))
+    (awhen (cadr (assoc ct *content-type-list* :test #'equal))
+      (return it))))
 
 
 (defun traverse-path (path &optional (tree *traversal-path*))
@@ -49,11 +61,13 @@
                             (dolist (branch sub-tree1)
                               (awhen (walk-uri uri-rest branch)
                                 (return it))))))))))
-      (cons (walk-uri path tree) interesting-parts))))
+      (let ((func (walk-uri path tree)))
+        (when func
+          (cons func interesting-parts))))))
 
 
-(defun dispatch-handlers (request)
-  (let ((path (split-sequence #\/ (uri-path (parse-uri (script-name request))))))
+(defun dispatch-traverser-handlers (request)
+  (let ((path (cdr (split-sequence #\/ (script-name request)))))
     (traverse-path path)))
 
 
@@ -69,7 +83,14 @@ either return a handler or neglect by returning NIL."
   (loop :for dispatcher :in *dispatch-table*
         :for action = (funcall dispatcher request)
         :when action
-          :return (if (listp action)
-                      (apply (car action) (cdr action))
-                      (funcall action))
+          :return
+          (progn
+            (if (listp action)
+                (progn
+                  (let ((content-type (request-content-type request)))
+                    (apply (car action) (cons (request-method request)
+                                              (cons content-type
+                                                    (cdr action))))))
+                (progn
+                  (funcall action))))
         :finally (call-next-method)))
