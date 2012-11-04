@@ -40,8 +40,11 @@
                 #:find-system)
   (:import-from #:json
                 #:*json-output*
+                #:encode-json-to-string
                 #:encode-json
                 #:encode-object-member
+                #:stream-object-member-encoder
+                #:as-object-member
                 #:with-array
                 #:with-object
                 #:as-array-member

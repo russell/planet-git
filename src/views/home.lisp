@@ -39,6 +39,13 @@
 
 (defmethod home-page ((method (eql :get)) (content-type (eql :json)))
   (let ((users (select-dao 'login)))
-    (with-array ()
-        (loop :for user :in users
-              :do (encode-json user)))))
+    (json-output-to-string
+      (with-object ()
+        (encode-object-member 'count (length users))
+        (encode-object-member 'next nil)
+        (encode-object-member 'previous nil)
+        (as-object-member ('results)
+          (with-array ()
+            (loop :for user :in users
+                  :do (as-array-member ()
+                        (encode-json user)))))))))

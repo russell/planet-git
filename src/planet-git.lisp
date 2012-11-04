@@ -118,7 +118,7 @@
   (with-object (stream)
     (encode-object-member 'username (user-username user) stream)
     (encode-object-member 'fullname (user-fullname user) stream)
-    (encode-object-member 'location (user-fullname user) stream)
+    (encode-object-member 'location (coalesce (user-location user)) stream)
     (encode-object-member 'photo (user-gravatar-url user) stream)))
 
 
