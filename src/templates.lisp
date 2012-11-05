@@ -152,7 +152,7 @@ which it is in fact.  Useful for defining syntactic constructs"
 		       ,@buttons))))
 
 
-(def-who-macro tabs (&rest tabs)
+(def-who-macro widget-tabs (&rest tabs)
   "Generate a bootstrap tab system, the first element of the tabs is
 the NAME of the tab, it will be lowercased and used as the ID of each
 tab too.  The other elements of a tab are treated as the body of the

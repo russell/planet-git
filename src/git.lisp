@@ -31,3 +31,10 @@ created repository will be bare."
       ;; TODO should catch error 5 not all errors.
       (git-init :repository path :bare bare)
       path)))
+
+(defun format-git-timestamp (timestamp &optional (format :short))
+  "Format a git timestamp in some predefined formats."
+  (ecase format
+    (:short
+     (format-timestring nil timestamp
+                        :format '(:long-month " " :day ", " :year)))))

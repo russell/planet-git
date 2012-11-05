@@ -102,7 +102,7 @@ delete button"
                           (:h1 (:a :href (url-join (user-username user))
                                    (str (user-username user)))
                                (:small "Settings"))))
-    (tabs
+    (widget-tabs
      ("Personal"
       (:h2 "Personal Information")
       (form-fragment login-form

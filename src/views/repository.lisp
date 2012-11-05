@@ -68,8 +68,7 @@
                               ("icon" . ,(gravatar-url email :size 40))
                               ("message" . ,(git-message commit))
                               ("name" . ,name)
-                              ("time" . ,(format-timestring nil timestamp
-                                                            :format '(:long-month " " :day ", " :year)))))))))))))))))
+                              ("time" . ,(format-git-timestamp timestamp :short))))))))))))))))
 
 
 (define-rest-handler (repository-key-access
@@ -156,32 +155,36 @@
                                 :selected (when (equal x branch) "true")
                                 (str (remove-ref-path x)))))
                           (git-list :reference))))
-   (:ol :id "commit-list" :class "commit-list"
-        :user username :repository repository-name
-        :branch (remove-ref-path branch)
-        ;; this should probably be added back once i
-        ;; can find a way to get the ajax interface to
-        ;; play nice with a non-ajax interface.
+   (widget-tabs
+    ("Commits"
+     (:ol :id "commit-list" :class "commit-list"
+          :user username :repository repository-name
+          :branch (remove-ref-path branch)
+          ;; this should probably be added back once i
+          ;; can find a way to get the ajax interface to
+          ;; play nice with a non-ajax interface.
 
-        ;; (let ((count 0))
-        ;;   (with-git-revisions (commit :head branch)
-        ;;     (setf count (+ count 1))
-        ;;     (when (> count 10) (return))
-        ;;     (htm
-        ;;      (:li :id (git-id commit)
-        ;;           (let* ((author (git-author commit))
-        ;;                  (name (getf author :name))
-        ;;                  (email (getf author :email))
-        ;;                  (timestamp (getf author :time)))
-        ;;             (htm
-        ;;              (:img :src (gravatar-url email :size 40))
-        ;;              (:p (str (git-message commit)))
-        ;;              (:span :class "author" (str name))
-        ;;              (:span :class "date"
-        ;;                     (str
-        ;;                      (format-timestring nil timestamp :format
-        ;;                                         '(:long-month " " :day ", " :year))))))))))
-        )))
+          ;; (let ((count 0))
+          ;;   (with-git-revisions (commit :head branch)
+          ;;     (setf count (+ count 1))
+          ;;     (when (> count 10) (return))
+          ;;     (htm
+          ;;      (:li :id (git-id commit)
+          ;;           (let* ((author (git-author commit))
+          ;;                  (name (getf author :name))
+          ;;                  (email (getf author :email))
+          ;;                  (timestamp (getf author :time)))
+          ;;             (htm
+          ;;              (:img :src (gravatar-url email :size 40))
+          ;;              (:p (str (git-message commit)))
+          ;;              (:span :class "author" (str name))
+          ;;              (:span :class "date"
+          ;;                     (str
+          ;;                      (format-timestring nil timestamp :format
+          ;;                                         '(:long-month " " :day ", " :year))))))))))
+          ))
+    ("Files"
+     (:table :class "table")))))
 
 (defun repository-page (username repository-name &key branch)
   (let*
