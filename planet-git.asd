@@ -40,7 +40,6 @@
                #:md5)
   :components ((:static-file "planet-git.asd")
                (:module "src"
-                        :serial t
                         :components
                         ((:file "package")
                          (:file "config" :depends-on ("package"))
@@ -50,11 +49,11 @@
                          (:file "easy-handlers" :depends-on ("package"))
                          (:file "rest" :depends-on ("package"))
                          (:file "auth" :depends-on ("package"))
-                         (:file "templates" :depends-on ("package"))
+                         (:file "templates" :depends-on ("package" "models" "auth"))
                          (:file "forms" :depends-on ("package"))
                          (:file "validators" :depends-on ("package"))
                          (:module "models"
-                                  :depends-on ("package")
+                                  :depends-on ("package" "auth")
                                   :components
                                   ((:file "users")
                                    (:file "repository")))
