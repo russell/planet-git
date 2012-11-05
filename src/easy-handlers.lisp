@@ -153,3 +153,26 @@ are the global default values."
                                                   ,(or parameter-type default-parameter-type)
                                                   ,(or request-type default-request-type)))
                           ,init-form))))
+
+(defun make-let-parameter (description default-parameter-type default-request-type)
+  ""
+  (when (atom description)
+    (setq description (list description)))
+  (destructuring-bind (parameter-name &key (real-name (compute-real-name parameter-name))
+                                           parameter-type init-form request-type)
+      description
+    `(,parameter-name (or (compute-parameter ,real-name
+                                             ,(or parameter-type default-parameter-type)
+                                             ,(or request-type default-request-type))
+                          ,init-form))))
+
+
+(defmacro with-request-args (lambda-list &body body)
+  ""
+  (let ((default-parameter-type 'string)
+        (default-request-type :both))
+    `(let (,@(loop for part in lambda-list
+                               collect (make-let-parameter part
+                                                             default-parameter-type
+                                                             default-request-type)))
+      ,@body)))

@@ -18,7 +18,6 @@
 
 (in-package #:planet-git)
 
-
 (def-who-macro user-item-fragment (user)
   "Create a users description for the front page"
   `(htm
@@ -28,24 +27,34 @@
 	      (:h3 :class "name"
 		   (str (slot-value ,user 'username)))))))
 
+(defun list-users (&optional (offset 0) (number *max-results-per-query*))
+  (with-request-args
+      ((offset :parameter-type 'string :request-type :get :init-form offset))
+    (let ((users (query-dao 'login
+                            (:limit (:select 'login.* :from 'login)
+                                    number
+                                    offset))))
+      users)))
+
 (defgeneric home-page (method content-type))
 
 (defmethod home-page ((method (eql :get)) (content-type (eql :html)))
-  (render-standard-page (:title "Planet Git"
-                                :subtitle "a bad clone of github or gitorious.")
-	    (let ((users (select-dao 'login)))
-          (loop :for user :in users
-               :do (user-item-fragment user)))))
+  (let ((users (list-users)))
+    (render-standard-page (:title "Planet Git"
+                           :subtitle "a bad clone of github or gitorious.")
+      (loop :for user :in users
+            :do (user-item-fragment user)))))
+
 
 (defmethod home-page ((method (eql :get)) (content-type (eql :json)))
-  (let ((users (select-dao 'login)))
-    (json-output-to-string
-      (with-object ()
-        (encode-object-member 'count (length users))
-        (encode-object-member 'next nil)
-        (encode-object-member 'previous nil)
-        (as-object-member ('results)
-          (with-array ()
-            (loop :for user :in users
-                  :do (as-array-member ()
-                        (encode-json user)))))))))
+  (let ((users (list-users)))
+   (json-output-to-string
+     (with-object ()
+       (encode-object-member 'count (count-dao 'login))
+       (encode-object-member 'next nil)
+       (encode-object-member 'previous nil)
+       (as-object-member ('results)
+         (with-array ()
+           (loop :for user :in users
+                 :do (as-array-member ()
+                       (encode-json user)))))))))

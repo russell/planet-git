@@ -14,6 +14,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(in-package #:planet-git)
 
 (defmacro json-output-to-string (&body body)
   `(let ((*json-output* (make-string-output-stream)))

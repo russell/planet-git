@@ -16,20 +16,20 @@
 
 (in-package #:planet-git)
 
-(defun assoc-default (item alist &key key test test-not)
-  "return the CDR of the first cons in alist whose car satisfies the
-test, or nil if no such cons is found."
-  (declare (ignore key test-not))
-  (if test
-      (cdr (assoc item alist)); :key key :test test))
-      (cdr (assoc item alist)))); :key key :test-not test-not))))
+(defparameter *max-results-per-query* 5
+  "The max number of results to return per query.")
 
-(defun url-join (&rest rest)
-  "Join components of a url together with / characters."
-  (let ((sequence (mapcan #'(lambda (x) (list (string x) "/")) rest)))
-    (reduce #'(lambda (current next)
-		(if (stringp next)
-		    (concatenate 'string current next)
-		    current))
-	    sequence
-	    :initial-value "/")))
+
+(defmacro count-dao (type &optional (test t))
+  "Select count the daos for which the given test holds."
+  (flet ((check-string (x)
+           (if (stringp x) `(:raw ,x) x)))
+    (let* ((type-name (gensym))
+           (count (gensym))
+           (query `(:select (:count '*) :from (dao-table-name (find-class ,type-name))
+                    :where ,(check-string test))))
+      `(let ((,type-name ,type)
+             ,count)
+         (doquery ,query (count)
+           (setq ,count count))
+         ,count))))

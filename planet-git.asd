@@ -44,29 +44,37 @@
                         :components
                         ((:file "package")
                          (:file "config" :depends-on ("package"))
-                         (:file "compat")
-                         (:file "traverser")
-                         (:file "utils")
-                         (:file "easy-handlers")
-                         (:file "rest")
-                         (:file "templates")
-                         (:file "forms")
-                         (:file "validators")
+                         (:file "compat" :depends-on ("package"))
+                         (:file "traverser" :depends-on ("package"))
+                         (:file "utils" :depends-on ("package"))
+                         (:file "easy-handlers" :depends-on ("package"))
+                         (:file "rest" :depends-on ("package"))
+                         (:file "auth" :depends-on ("package"))
+                         (:file "templates" :depends-on ("package"))
+                         (:file "forms" :depends-on ("package"))
+                         (:file "validators" :depends-on ("package"))
+                         (:module "models"
+                                  :depends-on ("package")
+                                  :components
+                                  ((:file "users")
+                                   (:file "repository")))
                          (:module "paren"
                                   :depends-on ("package")
                                   :components
                                   ((:file "jquery")
                                    (:parenscript-file "commit")))
                          (:module "views"
-                                  :depends-on ("forms"
+                                  :depends-on ("package"
+                                               "forms"
                                                "validators"
                                                "templates"
                                                "easy-handlers"
-                                               "rest")
+                                               "rest"
+                                               "models")
                                   :components
                                   ((:file "home")
                                    (:file "user")
                                    (:file "registration")
                                    (:file "repository")))
-                         (:file "css")
-                         (:file "planet-git" :depends-on ("views" "traverser"))))))
+                         (:file "css" :depends-on ("package"))
+                         (:file "planet-git" :depends-on ("package" "views" "traverser"))))))
