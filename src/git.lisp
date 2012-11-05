@@ -14,10 +14,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;;; forms.lisp
-
 (in-package #:planet-git)
-
 
 (defun ensure-git-repository-exist (path &optional bare)
   "Open a repository at location, if the repository doesn't exist

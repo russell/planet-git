@@ -24,8 +24,6 @@
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-;;;; compat.lisp
-
 (in-package #:planet-git)
 
 (defmacro with-unique-names ((&rest bindings) &body body)

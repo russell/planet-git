@@ -18,7 +18,6 @@
 
 (in-package #:planet-git)
 
-
 (defun base-css ()
   (setf (content-type*) "text/css")
   (css
