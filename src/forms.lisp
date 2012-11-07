@@ -184,8 +184,9 @@ then-form; otherwise, the values returned by the else-form."
           (if (and (eq ',form *current-form*)
                    (> (hash-table-count *form-errors*) 0))
               (htm
-               (:div :class "alert-message error"
-                     (:p "Error detected on the page"))))
+               (:div :class "alert alert-error"
+                     (:button :class "close" :data-dismiss "alert" :type "button" "x")
+                     (:strong "Error:") " found in the form.")))
           ,@(mapcar
              (lambda (field)
                (destructuring-bind

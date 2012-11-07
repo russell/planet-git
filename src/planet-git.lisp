@@ -37,7 +37,6 @@
        (list "^/(\\w+)/settings/email/(\\w+)/delete/?$" t "text/html" 'user-email-delete)
        (list "^/(\\w+)/settings/key/(\\w+)/delete/?$" t "text/html" 'user-key-delete)
        (list "^/(\\w+)/settings/add-key?$" t "text/html" 'add-ssh-key)
-       (list "^/[^/]+/$" t "text/html" 'user-page)
        (list "^/[^/]+/[^/]+/$" t "text/html" 'repository-home-page)
        (list "^/[^/]+/[^/]+/key/[^/]+/$" t "text/html" 'repository-key-access)
        (list "^/[^/]+/[^/]+/branch/[^/]+/$" t "text/html" 'repository-branch-page)
@@ -49,8 +48,7 @@
   #'dispatch-easy-handlers
   #'dispatch-rest-handlers
   (create-prefix-dispatcher "/static/base.css" #'base-css)
-  (create-folder-dispatcher-and-handler "/static/" (resource-path "static"))
-  ))
+  (create-folder-dispatcher-and-handler "/static/" (resource-path "static"))))
 
 
 ;;; Database

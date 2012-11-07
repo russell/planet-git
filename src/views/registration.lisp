@@ -62,12 +62,14 @@
       (setf errors (make-hash-table)))
     (if logged-in
         (redirect came-from)
-        (render-standard-page (:title "Login")
-          (:form :action "" :class "login-form form-stacked" :method "post"
+        (render-standard-page (:title "Login" :body-class "")
+          (:form :action "" :class "login-form form-horizontal" :method "post"
                  (if (> (hash-table-count errors) 0)
                      (htm
-                      (:div :class "alert-message error"
-                            (:p "Error detected on the page"))))
+                      (:div :class "alert alert-error"
+                            (:button :class "close" :data-dismiss "alert" :type "button" "x")
+                            (:strong "Error:") " found in the form."
+                            )))
                  (:input :type "hidden" :name "came-from"
                          :value came-from)
                  (field-fragment "login" "Username or Email:" "text"
@@ -75,13 +77,13 @@
                                  :error (gethash 'login errors))
                  (field-fragment "password" "Password:" "password"
                                  :error (gethash 'password errors))
-                 (:div :class "actions"
-                       (:a :class "btn secondary"
-                           :href came-from "Cancel")
-                       (:input :class "btn primary"
+                 (:div :class "form-actions"
+                       (:button :class "btn btn-primary"
                                :type "submit"
                                :name "login"
-                               :value "Login")))))))
+                               :value "Login" "Login")
+                       (:a :class "btn"
+                                :href came-from "Cancel")))))))
 
 
 (define-easy-handler

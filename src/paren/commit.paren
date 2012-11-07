@@ -105,5 +105,6 @@
       ((add-commits-to selector) data text-status xml-http-request)
       (methcall :append (methcall :parent commit-list)
                 (who-ps-html
-                 (:button :id "load-more" :class "btn" "Load More")))
+                 (:div :class "form-actions"
+                       (:button :id "load-more" :class "btn" "Load More"))))
       ($ "#load-more" (click (load-more-commits selector))))))))

@@ -39,7 +39,7 @@ which it is in fact.  Useful for defining syntactic constructs"
 
 (def-who-macro* widget-navbar ()
   (htm
-   (:div :class "navbar"
+   (:div :class "navbar navbar-fixed-top"
          (:div :class "navbar-inner"
                (:div :class "container"
                      (:a :class "brand" :href "/" "Planet Git")
@@ -90,7 +90,7 @@ which it is in fact.  Useful for defining syntactic constructs"
                                                      ($ "#login-modal-form input[name=\"login\"]"
                                                         (focus))))))))))
                              (:li (:a :href "/register" "Register"))
-                             (:li (:a :href "/login"
+                             (:li (:a :href "#"
                                       :data-target "#login-modal"
                                       :data-toggle "modal"
                                       "Login"))))))))))
@@ -99,29 +99,33 @@ which it is in fact.  Useful for defining syntactic constructs"
   "The base page template"
   `(with-html-output-to-string (*standard-output* nil :prologue t)
      (:html :xmlns "http://www.w3.org/1999/xhtml"
-	    :xml\:lang "en"
-	    :lang "en"
-	    (:head
-	     (:meta :http-equiv "Content-Type"
-                :content "text/html;charset=utf-8")
-	     (:title "Planet Git - " ,title)
-	     (:link :rel "stylesheet" :href "/static/css/bootstrap.css")
-	     (:link :rel "stylesheet" :href "/static/base.css")
-	     (:script :type "text/javascript" :src "/static/js/jquery.js")
-	     (:script :type "text/javascript" :src "/static/js/bootstrap.js")
-         ,@extra-head)
-	    (:body
-	     (:div :class "container"
-               (widget-navbar)
-          (:div :class "content"
-                (:div :class "page-header"
-                      ,(if page-header
-                           `(htm ,page-header)
-                           `(htm (:h1 ,title
-                                      (:small ,subtitle)))))
-                (:div :class "row"
-                      (:div :class ,body-class
-                            ,@body))))))))
+            :xml\:lang "en"
+            :lang "en"
+            (:head
+             (:meta :http-equiv "Content-Type"
+                    :content "text/html;charset=utf-8")
+             (:title "Planet Git - " ,title)
+             (:meta :name "viewport" :content "width=device-width, initial-scale=1.0")
+             (:link :rel "stylesheet" :href "/static/css/bootstrap.css")
+             (:link :rel "stylesheet" :href "/static/base.css")
+             (:link :rel "stylesheet" :href "/static/css/bootstrap-responsive.css")
+             (:script :type "text/javascript" :src "/static/js/jquery.js")
+             (:script :type "text/javascript" :src "/static/js/bootstrap.js")
+             ,@extra-head)
+            (:body
+             (widget-navbar)
+             (:div :id "page" :class "container"
+                   (:div :class ,body-class
+                         (:div :class "page-header"
+                               ,(if page-header
+                                    `(htm ,page-header)
+                                    `(htm (:h1 ,title
+                                               (:small ,subtitle)))))
+                         ,@body))
+             (:div :class "footer"
+                   (:div :class "container"
+                         (:p :class "muted credit"
+                             "Created By Russell Sim.")))))))
 
 
 (defmacro render-user-page ((user &key title subtitle (body-class "span10") extra-header extra-head) &body body)

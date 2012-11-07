@@ -21,30 +21,30 @@
 (defun base-css ()
   (setf (content-type*) "text/css")
   (css
-    (("html, body")
-     (:background-color "#eee"))
+    (("body")
+     (:background-color "#eee"
+      :padding-top "40px"))
     ((".container > footer p")
      (:text-align "center")) ; center align it with the container
 
-    ((".container")
-     (:width "820px")); downsize our container to make the content feel a bit tighter and more cohesive. NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16.
+    ;; The white background content wrapper
+    ;; ((".content")
+    ;;  (:background-color "#fff"
+    ;;   :padding "20px"
+    ;;   :margin "0 -20px"; negative indent the amount of the padding to maintain the grid system
+    ;;   :-webkit-border-radius "0 0 6px 6px"
+    ;;   :-moz-border-radius "0 0 6px 6px"
+    ;;   :border-radius "0 0 6px 6px"
+    ;;   :-webkit-box-shadow "0 1px 2px rgba(0,0,0,.15)"
+    ;;   :-moz-box-shadow "0 1px 2px rgba(0,0,0,.15)"
+    ;;   :box-shadow "0 1px 2px rgba(0,0,0,.15)"))
 
-                                        ; The white background content wrapper
-    ((".content")
+    (("#page")
      (:background-color "#fff"
-      :padding "20px"
-      :margin "0 -20px"; negative indent the amount of the padding to maintain the grid system
-      :-webkit-border-radius "0 0 6px 6px"
-      :-moz-border-radius "0 0 6px 6px"
-      :border-radius "0 0 6px 6px"
-      :-webkit-box-shadow "0 1px 2px rgba(0,0,0,.15)"
-      :-moz-box-shadow "0 1px 2px rgba(0,0,0,.15)"
-      :box-shadow "0 1px 2px rgba(0,0,0,.15)"))
-                                        ; Page header tweaks
+      :border-radius "0 0 4px 4px"))
+    ;; Page header tweaks
     ((".page-header")
-     (:background-color "#f5f5f5"
-      :padding "20px 20px 10px"
-      :margin "-20px -20px 20px")
+     ()
      (("h1")
       (:display "inline"
        :vertical-align "top"))
@@ -57,14 +57,16 @@
     ((".content .span10, .content .span4")
      (:min-height "500px"))
 
-                                        ; Give a quick and non-cross-browser friendly divider
+    ;; Give a quick and non-cross-browser friendly divider
     ((".content .span4")
      (:margin-left "0"
       :padding-left "19px"
       :border-left "1px solid #eee"))
 
-    ((".navbar .btn")
-     (:border "0"))
+    ((".navbar")
+     ()
+     ((".btn")
+      (:border "0")))
 
     (("ol.commit-list")
      (:list-style-type "none")
@@ -110,11 +112,17 @@
      (("img")
       (:margin "5px")))
 
-    ((".login-form") nil
+    ((".login-form")
+     (:max-width "500px"
+      :margin "0 auto")
      (("ul")
       (:list-style-type "none"))
-     (("input")
-      (:font-size "large"))
-     (("input.btn")
-      (:font-size "small")))
-    ))
+     ((".form-actions button, .form-actions a" )
+      (:margin-right "5px")))
+
+    ;; Footer
+    (("#footer")
+     (:background-color "#f5f5f5"))
+    ((".container .credit")
+     (:margin "20px 0"))
+))

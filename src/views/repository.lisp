@@ -106,8 +106,9 @@
 	(:form :action "" :method "post"
 	       (if (> (hash-table-count errors) 0)
 		   (htm
-		    (:div :class "alert-message error"
-			  (:p "Error detected on the page"))))
+		    (:div :class "alert alert-error"
+                  (:button :class "close" :data-dismiss "alert" :type "button" "x")
+                  (:strong "Error:") " found in the form.")))
 	       (field-fragment "name" "Name:" "text"
 		      :error (gethash 'name errors))
 	       (field-fragment "public" "Public:" "checkbox"
