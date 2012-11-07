@@ -48,6 +48,7 @@
                          (:file "utils" :depends-on ("package"))
                          (:file "easy-handlers" :depends-on ("package"))
                          (:file "rest" :depends-on ("package"))
+                         (:file "git" :depends-on ("package"))
                          (:file "auth" :depends-on ("package"))
                          (:file "templates" :depends-on ("package" "models" "auth"))
                          (:file "forms" :depends-on ("package"))
