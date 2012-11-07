@@ -16,10 +16,10 @@
 
 (in-package #:planet-git)
 
-(defparameter *traversal-path*
+(defvar *traversal-path*
   '(nil home-page
     ;; ("register" register-page)
-    ;; (:user user-page
+    (:username user-page
      ;; ("settings" user-settings-page
      ;;  ("email" user-email-page)
      ;;  ("key" user-key-page))
@@ -27,17 +27,18 @@
      ;;  ("key" repository-key-access)
      ;;  ("branch" repository-branch-page)
      ;;  ("commits" repository-commits))
-    )
-  )
+    )))
 
-(defparameter *content-type-list*
+(defvar *content-type-list*
   '(("text/html" :html)
     ("application/json" :json)))
 
+(defun content-type-to-symbol (content-type)
+  (cadr (assoc content-type *content-type-list* :test #'equal)))
 
 (defun request-content-type (request)
   (dolist (ct (request-accepts request))
-    (awhen (cadr (assoc ct *content-type-list* :test #'equal))
+    (awhen (content-type-to-symbol ct)
       (return it))))
 
 
@@ -60,13 +61,14 @@
                             (dolist (branch sub-tree1)
                               (awhen (walk-uri uri-rest branch)
                                 (return it))))))))))
-      (let ((func (walk-uri path tree)))
+      (let ((func (walk-uri (cons "" path) tree)))
         (when func
           (cons func interesting-parts))))))
 
 
 (defun dispatch-traverser-handlers (request)
-  (let ((path (cdr (split-sequence #\/ (script-name request)))))
+  (let ((path (remove-if (lambda (s) (string-equal s ""))
+                         (split-sequence #\/ (script-name request)))))
     (traverse-path path)))
 
 
@@ -86,10 +88,10 @@ either return a handler or neglect by returning NIL."
           (progn
             (if (listp action)
                 (progn
-                  (let ((content-type (request-content-type request)))
-                    (apply (car action) (cons (request-method request)
-                                              (cons content-type
-                                                    (cdr action))))))
+                  (let ((content-type (or (request-content-type request)
+                                          (content-type-to-symbol *default-content-type*)))
+                        (method (request-method request)))
+                    (apply (car action) (cons method (cons content-type (cdr action))))))
                 (progn
                   (funcall action))))
         :finally (call-next-method)))
