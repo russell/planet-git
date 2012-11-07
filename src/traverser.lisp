@@ -16,9 +16,11 @@
 
 (in-package #:planet-git)
 
-(defvar *traversal-path*
+(defparameter *traversal-path*
   '(nil home-page
-    ;; ("register" register-page)
+    ("login" login-page)
+    ("logout" logout-page)
+    ("register" register-page)
     (:username user-page
      ;; ("settings" user-settings-page
      ;;  ("email" user-email-page)
@@ -48,7 +50,7 @@
                (destructuring-bind (segment func &rest sub-tree1) sub-tree
                  (let ((uri-segment (car sub-uri))
                        (uri-rest (cdr sub-uri)))
-                   (when (or (null segment) (equal segment uri-segment) (symbolp segment))
+                   (when (or (null segment) (string-equal segment uri-segment) (symbolp segment))
                      (when (and (symbolp segment) (not (null segment)))
                        (setf interesting-parts `(,segment ,uri-segment ,@interesting-parts)))
                      (aif (cond
@@ -61,9 +63,12 @@
                             (dolist (branch sub-tree1)
                               (awhen (walk-uri uri-rest branch)
                                 (return it))))))))))
-      (let ((func (walk-uri (cons "" path) tree)))
-        (when func
-          (cons func interesting-parts))))))
+      (destructuring-bind (segment func &rest sub-tree) tree
+        (if (and (null segment) (null path))
+            (list func)
+            (dolist (branch sub-tree)
+              (awhen (walk-uri path branch)
+                (return (cons it interesting-parts)))))))))
 
 
 (defun dispatch-traverser-handlers (request)

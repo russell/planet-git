@@ -34,23 +34,23 @@
 
 (test traverse-path-root
   (is (equal '('home-page)
-             (planet-git::traverse-path '("") test-traversal-path))))
+             (planet-git::traverse-path '() test-traversal-path))))
 
 (test traverse-path
   (is (equal '('repository-home-page :repository "repository" :user "russell")
-             (planet-git::traverse-path '("" "russell" "repository") test-traversal-path))))
+             (planet-git::traverse-path '("russell" "repository") test-traversal-path))))
 
 (test traverse-path1
   (is (equal '('user-email-page :user "russell")
-             (planet-git::traverse-path '("" "russell" "settings" "email") test-traversal-path))))
+             (planet-git::traverse-path '("russell" "settings" "email") test-traversal-path))))
 
 (test traverse-path2
   (is (equal '('repository-branch-page :branch "master" :repository "repository" :user "russell")
-             (planet-git::traverse-path '("" "russell" "repository" "branch" "master") test-traversal-path))))
+             (planet-git::traverse-path '("russell" "repository" "branch" "master") test-traversal-path))))
 
 (test traverse-path3
   (is (equal '('repository-branch-page :repository "repository" :user "russell")
-             (planet-git::traverse-path '("" "russell" "repository" "branch") test-traversal-path))))
+             (planet-git::traverse-path '("russell" "repository" "branch") test-traversal-path))))
 
 (defclass mock-request ()
   ((script-name
