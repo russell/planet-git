@@ -50,16 +50,12 @@
                         :name "new-user-form-submit" :value "Register"))))))
 
 
-(define-easy-handler
-    (login-page :uri "/login")
-    ((login :parameter-type 'string :request-type :post)
-     (password :parameter-type 'string :request-type :post)
-     (came-from :parameter-type 'string))
+(defun login-widget (&key (login nil) (password nil) (came-from "/"))
   (let* ((errors (if (and login password) (validate-login)))
          (logged-in (when (and errors (= (hash-table-count errors) 0)) (login-session login password))))
     (if (and errors (gethash 'password errors))
-      (setf (gethash 'password errors) "Invalid password.")
-      (setf errors (make-hash-table)))
+        (setf (gethash 'password errors) "Invalid password.")
+        (setf errors (make-hash-table)))
     (if logged-in
         (redirect came-from)
         (render-standard-page (:title "Login" :body-class "")
@@ -85,8 +81,22 @@
                        (:a :class "btn"
                                 :href came-from "Cancel")))))))
 
+(defgeneric login-page (method content-type))
 
-(define-easy-handler
-    (logout-page :uri "/logout") ()
+(defmethod login-page ((method (eql :post)) (content-type (eql :html)))
+  (with-request-args
+      ((login :parameter-type 'string :request-type :post)
+       (password :parameter-type 'string :request-type :post)
+       (came-from :parameter-type 'string :init-form "/"))
+    (login-widget :login login :password password :came-from came-from)))
+
+(defmethod login-page ((method (eql :get)) (content-type (eql :html)))
+  (with-request-args
+      ((came-from :parameter-type 'string :init-form "/"))
+    (login-widget :came-from came-from)))
+
+(defgeneric logout-page (method content-type))
+
+(defmethod logout-page ((method (eql :get)) (content-type (eql :html)))
   (logout-session)
   (redirect "/"))

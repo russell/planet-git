@@ -28,11 +28,10 @@
           (unless ,public
             (htm (:span :class "label label-important" "Private"))))))
 
+(defgeneric user-page (method content-type &key username))
 
-(define-rest-handler (user-page :uri "^/(\\w+)/?$" :args (username)) ()
-  (log-message* *lisp-warnings-log-level* "Entered User Page")
-  (let
-      ((user (car (select-dao 'login (:= 'username username)))))
+(defmethod user-page ((method (eql :get)) (content-type (eql :html)) &key username)
+  (let ((user (car (select-dao 'login (:= 'username username)))))
     (if user
         (let ((username (slot-value user 'username))
               (is-current-user (equal (slot-value user 'username)
@@ -44,15 +43,13 @@
                                         :href "/repository/new"
                                         "Add Repository"))))
             (let ((repositories (select-dao
-                                 'repository (:= 'owner-id (slot-value user 'id)))))
-              (log-message* *lisp-warnings-log-level* "Repositories ~a" repositories)
+                                    'repository (:= 'owner-id (slot-value user 'id)))))
               (labels ((repository-fragment (repos)
                          (let* ((repo (car repos)) (rest (cdr repos))
                                 (visible (or (slot-value repo 'public)
                                              (equal (slot-value user 'username)
                                                     (when (loginp) (slot-value (loginp) 'username)))))
                                 (public (repository-public repo)))
-                           (log-message* *lisp-warnings-log-level* "Repository ~a" repo)
                            (when (and repo (or visible is-current-user))
                              (repository-item-fragment (slot-value repo 'name)
                                                        username

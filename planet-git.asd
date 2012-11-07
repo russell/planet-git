@@ -57,6 +57,7 @@
                                   :depends-on ("package" "auth")
                                   :components
                                   ((:file "users")
+                                   (:file "sql")
                                    (:file "repository")))
                          (:module "paren"
                                   :depends-on ("package")

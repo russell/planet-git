@@ -18,12 +18,28 @@
 
 (in-package #:planet-git)
 
+;; the current url format is
+;; /username/repository
+;;
+
+(defgeneric repository-page (method content-type &key username repository &allow-other-keys))
+
+(defmethod repository-page ((method (eql :get)) (content-type (eql :html))
+                            &key username repository)
+  (repository-page-widget username repository))
+
+(defmethod repository-page ((method (eql :get)) (content-type (eql :html))
+                            &key username repository branch)
+  (let ((ref (concatenate 'string "refs/heads/" branch)))
+    (repository-page-widget username repository :branch ref)))
+
+
 
 (define-rest-handler (repository-home-page
                       :uri "^/([^/]+)/([^/]+)/?$"
                       :args (username repository-name))
     ()
-    (repository-page username repository-name))
+    (repository-page-widget username repository-name))
 
 
 (define-rest-handler (repository-branch-page
@@ -32,7 +48,7 @@
     ()
   (let
       ((ref (concatenate 'string "refs/heads/" branch)))
-    (repository-page username repository-name :branch ref)))
+    (repository-page-widget username repository-name :branch ref)))
 
 
 (define-rest-handler (repository-branch-commits-json
@@ -187,7 +203,7 @@
     ("Files"
      (:table :class "table")))))
 
-(defun repository-page (username repository-name &key branch)
+(defun repository-page-widget (username repository-name &key branch)
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
        (repository (car (select-dao
