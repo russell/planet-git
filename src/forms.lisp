@@ -200,5 +200,5 @@ then-form; otherwise, the values returned by the else-form."
                                              ,value)
                                   ,@rest)))
              fields)
-          (:div :class "actions"
+          (:div :class "form-actions"
                 ,@buttons)))
