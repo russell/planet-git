@@ -34,9 +34,10 @@ passwords"
                         :left-join 'email :on (:= 'login.id 'email.user-id)
                         :where (:or (:= 'login.username login)
                                     (:= 'email.email login)))))))
-    (if (compare-password-hash (user-password user) password)
-        user
-        nil)))
+    (when user
+      (if (compare-password-hash (user-password user) password)
+          user
+          nil))))
 
 
 (defun login-session (login password)
