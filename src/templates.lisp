@@ -144,16 +144,17 @@ which it is in fact.  Useful for defining syntactic constructs"
 
 (def-who-macro modal ((id heading &key buttons) &body body)
   (let ((buttons (if buttons buttons
-		     '((:a :href "#" :class "btn btn-primary" "Primary")
-		       (:a :href "#" :class "btn" "Secondary")))))
-    `(:div :id ,id :class "modal hide fade"
-		 (:div :class "modal-header"
-               (:button :class "close" :data-dismiss "modal" "&times;")
-		       (:h3 ,heading))
-		 (:div :class "modal-body"
-		       ,@body)
-		 (:div :class "modal-footer"
-		       ,@buttons))))
+                     '((:a :href "#" :class "btn btn-primary" "Primary")
+                       (:a :href "#" :class "btn" "Secondary")))))
+    `(htm
+      (:div :id ,id :class "modal hide fade"
+            (:div :class "modal-header"
+                  (:button :class "close" :data-dismiss "modal" "&times;")
+                  (:h3 ,heading))
+            (:div :class "modal-body"
+                  ,@body)
+            (:div :class "modal-footer"
+                  ,@buttons)))))
 
 
 (def-who-macro widget-tabs (&rest tabs)
