@@ -37,9 +37,6 @@ SYMBOL.  Used in cases where no parameter name is provided."
 SYMBOL.  Used in cases where no parameter name is provided."
   (intern (concatenate 'string (symbol-name form) "-" (symbol-name field))))
 
-(defmacro define-form (form-name fields)
-  `(defparameter ,form-name ',fields))
-
 (defun who-args-filter-keys (arguments)
   (destructuring-bind
         (parameter-name &key
