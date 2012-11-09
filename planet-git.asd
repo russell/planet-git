@@ -14,30 +14,30 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;;; planet-git.asd
-
 (operate 'load-op :paren-files)
 
 (asdf:defsystem #:planet-git
   :serial t
-  :depends-on (#:anaphora
-               #:hunchentoot
-               #:chunga
-               #:cl-who
-               #:cl-git
-               #:postmodern
-               #:cl-ppcre
-               #:css-lite
-               #:cl-json
-               #:asdf
-               #:database-migrations
-               #:parenscript
-               #:paren-files
-               #:paren-psos
-               #:cl-fad
-               #:split-sequence
-               #:puri
-               #:md5)
+  :depends-on (:planet-git.widgets
+               :anaphora
+               :hunchentoot
+               :chunga
+               :cl-who
+               :cl-git
+               :postmodern
+               :cl-ppcre
+               :css-lite
+               :cl-json
+               :asdf
+               :database-migrations
+               :parenscript
+               :paren-files
+               :paren-psos
+               :cl-fad
+               :split-sequence
+               :puri
+               :md5
+               :swank)
   :components ((:static-file "planet-git.asd")
                (:module "src"
                         :components
