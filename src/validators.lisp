@@ -15,9 +15,18 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-;;; validators.lisp
-
 (in-package #:planet-git)
+
+(defun validate-username-exists (fieldname username)
+  (when (car (select-dao 'login (:= 'username username)))
+    (concatenate 'string "Error, This " fieldname " is already taken.")))
+
+(defun validate-email-exists (fieldname email)
+  (when (car (select-dao 'email (:= 'email email)))
+    (concatenate 'string "Error, This " fieldname " is already taken.")))
+
+
+;;;; everything below this is deprecated
 
 
 (defun validate-length (fieldname)
@@ -27,20 +36,6 @@
 (defun validate-username (fieldname)
   (when (car (list (scan "[^a-zA-Z]" (parameter fieldname))))
     (concatenate 'string "Error, " fieldname " can only contain alpha characters.")))
-
-(defun validate-username-exists (fieldname)
-  (when (car
-	 (select-dao 'login
-				(:= 'username
-				    (parameter fieldname))))
-    (concatenate 'string "Error, This " fieldname " is already taken.")))
-
-(defun validate-email-exists (fieldname)
-  (when (car
-	 (select-dao 'email
-				(:= 'email
-				    (parameter fieldname))))
-    (concatenate 'string "Error, This " fieldname " is already taken.")))
 
 (defun validate-email (fieldname)
   (unless (scan "^[^@]+@[^@]+[.][^@]+$" (parameter fieldname))
@@ -66,10 +61,6 @@
                 (setf (gethash lname lerrors) validation-error))))))
 
 
-;;
-;; The def-validator and uses of this macro is deprecated.
-;;
-
 (defmacro def-validator (name () &body body)
   `(defun ,name ()
      (let ((errors (make-hash-table)))
@@ -77,18 +68,6 @@
 	   (progn
 	     ,@body))
        errors)))
-
-(def-validator validate-registration ()
-  (validate-field 'fullname errors #'validate-length)
-  (validate-field 'username errors #'validate-length
-		  #'validate-username #'validate-username-exists)
-  (validate-field 'email errors #'validate-length #'validate-email)
-  (validate-field 'password errors #'validate-length)
-  (validate-field 'cpassword errors #'validate-password))
-
-(def-validator validate-login ()
-  (validate-field 'login errors #'validate-length)
-  (validate-field 'password errors #'validate-length))
 
 (def-validator validate-newrepository ()
   (validate-field 'name errors #'validate-length))

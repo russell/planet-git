@@ -14,22 +14,32 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;;; package.lisp
 (in-package :cl-user)
 
 (defpackage :planet-git.ps
-  (:use #:cl #:parenscript #:cl-who)
+  (:use #:cl #:parenscript #:cl-who #:rjson #:paren-util)
   (:export
    #:ajax
    #:$
    #:doc-ready))
-
 
 (defpackage :planet-git
   (:use #:cl
         #:hunchentoot
         #:postmodern
         #:planet-git.ps)
+  (:import-from #:planet-git.widgets
+                #:validate-form
+                #:parse-form
+                #:form-class
+                #:render
+                #:render-buttons
+                #:form-real-name
+                #:def-validator
+                #:valid-p
+                #:form-errors
+                #:widget
+                #:form)
   (:import-from #:anaphora
                 #:awhen
                 #:aif

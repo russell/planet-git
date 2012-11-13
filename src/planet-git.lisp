@@ -32,7 +32,6 @@
 
 (setq *rest-handler-alist*
       (list
-       (list "^/register?$" t "text/html" 'register-page)
        (list "^/(\\w+)/settings/?$" t "text/html" 'user-settings-page)
        (list "^/(\\w+)/settings/email/(\\w+)/delete/?$" t "text/html" 'user-email-delete)
        (list "^/(\\w+)/settings/key/(\\w+)/delete/?$" t "text/html" 'user-key-delete)

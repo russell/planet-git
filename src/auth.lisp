@@ -39,15 +39,16 @@ passwords"
           user
           nil))))
 
+(defun session-attach-user (user)
+  "Attach a user to the current session."
+  (let ((session (start-session)))
+    (setf (session-value 'user session) user)))
 
 (defun login-session (login password)
   "Log a user in to a session, the user object will be stored as the
 value of the session."
   (let ((user (verify-password login password)))
-    (if user
-        (let ((session (start-session)))
-          (setf (session-value 'user session) user))
-        nil)))
+    (if user (session-attach-user user) nil)))
 
 
 (defun logout-session ()
