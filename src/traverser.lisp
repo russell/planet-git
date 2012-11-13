@@ -22,7 +22,7 @@
     ("logout" logout-page)
     ("register" register-page)
     (:username user-page
-     ;; ("settings" user-settings-page
+     ("settings" user-settings-page)
      ;;  ("email" user-email-page)
      ;;  ("key" user-key-page))
      ;; (:repository repository-home-page

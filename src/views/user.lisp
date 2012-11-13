@@ -18,6 +18,16 @@
 
 (in-package #:planet-git)
 
+(defun is-current-user (username-or-user)
+  (let ((current-user (loginp))
+        (user (cond
+                ((typep username-or-user 'login)
+                 username-or-user)
+                (t
+                 (car (select-dao 'login (:= 'username username-or-user)))))))
+    (when (and current-user user
+               (eql (slot-value user 'id)
+                      (slot-value current-user 'id))))))
 
 (def-who-macro repository-item-fragment (name owner public)
   `(htm
@@ -140,40 +150,61 @@ delete button"
                                        :value "Save")))))))
 
 
-(define-form-handler (user-settings-page :uri "^/(\\w+)/settings/?$"
-                                         :args (username))
-    ((:email-form
-      (email :parameter-type 'string :request-type :post
-             :validate (#'validate-length #'validate-email)))
-     (:login-form
-      (fullname :parameter-type 'string :request-type :post
-                :validate (#'validate-length)))
-     (:key-form
-      (key :parameter-type 'string :request-type :post
-                :validate (#'validate-length #'validate-key))))
-  (let*
-      ((user (car (select-dao 'login (:= 'username username))))
-       (is-current-user (when user
-                          (equal
-                           (slot-value user 'username)
-                           (when (loginp)
-                             (slot-value (loginp) 'username))))))
+(defclass email-form (form)
+  ((email :parameter-type string
+          :request-type :post
+          :initform ""
+          :type :email
+          :validators (:required :email)))
+  (:metaclass form-class))
+
+(defmethod save-form ((form key-form))
+  (insert-dao
+   (make-instance 'email
+                  :user-id (slot-value (loginp) 'id)
+                  :email (slot-valke form 'email))))
+
+(defclass key-form (form)
+  ((key :parameter-type string
+          :request-type :post
+          :initform ""
+          :type :text-area
+          :validators (:required :ssh-key)))
+  (:metaclass form-class))
+
+(defmethod save-form ((form key-form))
+  (insert-dao (key-parse (slot-value form 'key))))
+
+(defclass user-form (form)
+  ((fullname :parameter-type string
+          :request-type :post
+          :initform ""
+          :type :text-area
+          :validators (:required)))
+  (:metaclass form-class))
+
+(defmethod save-form ((form key-form))
+  (let ((user (get-dao 'login (slot-value (loginp) 'id))))
+    (setf (slot-value user 'fullname) (slot-value form 'fullname))
+    (update-dao user)))
+
+(defgeneric user-settings-page (method content-type &key username))
+
+(defmethod user-settings-page ((method (eql :get)) (content-type (eql :html)) &key username)
+  (let* ((user-form (make-instance 'user-form))
+         (email-form (make-instance 'email-form :submit-action "Add"))
+         (key-form (make-instance 'key-form :submit-action "Add"))
+         (user (car (select-dao 'login (:= 'username username))))
+         (is-current-user (is-current-user user)))
     (if is-current-user
         (progn
-          (setf *current-form*
-                (cond-forms
-                 (:email-form
-                  (insert-dao
-                   (make-instance 'email
-                                  :user-id (slot-value (loginp) 'id)
-                                  :email email)))
-                 (:login-form
-                  (let ((user (get-dao 'login (slot-value user 'id))))
-                    (setf (slot-value user 'fullname) fullname)
-                    (update-dao user)))
-                 (:key-form
-                  (insert-dao
-                   (key-parse key)))))
+          (cond
+            ((validate-form (parse-form email-form))
+             (save-form email-form))
+            ((validate-form (parse-form user-form))
+             (save-form user-form))
+            ((validate-form (parse-form key-form))
+             (save-form key-form)))
           (let ((emails (select-dao 'email (:= 'user-id (id user))))
                 (keys (select-dao 'key (:= 'user-id (id user)))))
             (user-settings-tmpl user emails keys)))
@@ -183,11 +214,7 @@ delete button"
 (define-rest-handler (user-email-delete :uri "^/(\\w+)/settings/email/(\\w+)/delete/?$" :args (username email-id)) ()
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
-       (is-current-user (when user
-			  (equal
-			   (user-username user)
-			   (when (loginp)
-			     (user-username (loginp)))))))
+       (is-current-user (is-current-user user)))
     (if is-current-user
 	(let ((email (car
 		      (select-dao 'email
@@ -201,11 +228,7 @@ delete button"
 (define-rest-handler (user-key-delete :uri "^/(\\w+)/settings/key/(\\w+)/delete/?$" :args (username key-id)) ()
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
-       (is-current-user (when user
-			  (equal
-			   (user-username user)
-			   (when (loginp)
-			     (user-username (loginp)))))))
+       (is-current-user (is-current-user user)))
     (if is-current-user
 	(let ((key (car
 		      (select-dao 'key
@@ -223,7 +246,6 @@ delete button"
     ()
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
-       (is-current-user (when user (equal (slot-value user 'username)
-					  (when (loginp) (slot-value (loginp) 'username))))))
-					;    (if is-current-user)
+       (is-current-user (is-current-user user)))
+    ;; what the heck happened here... must have lost interest...
     ))

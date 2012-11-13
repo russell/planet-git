@@ -177,6 +177,20 @@
 (defmethod render-field ((form form) (field-type (eql :text)) field-name)
   (render-input form field-type field-name))
 
+(defmethod render-field ((form form) (field-type (eql :text-area)) field-name)
+  (with-html-output (*standard-output* nil)
+    (:div
+     :class (if (field-error form field-name) "control-group error" "control-group")
+     (:label :class "control-label" (str (field-label form field-name)))
+     (:div :class "controls"
+           (:textarea :name (field-name form field-name)
+                      :rows 3
+                      :class (if (field-error form field-name) "input-xlarge" "input-xlarge error")
+                      :value (slot-value form field-name)
+                      :error (field-error form field-name))
+           (:span :class "help-inline"
+                  (str (field-error form field-name)))))))
+
 (defmethod render-field ((form form) (field-type (eql :password)) field-name)
   (render-input form field-type field-name))
 
