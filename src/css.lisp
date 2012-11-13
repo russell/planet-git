@@ -41,7 +41,7 @@
 
     (("#page")
      (:background-color "#fff"
-      :border-radius "0 0 4px 4px"))
+      :border-radius "4px"))
     ;; Page header tweaks
     ((".page-header")
      ()
