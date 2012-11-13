@@ -38,7 +38,7 @@
 (defun content-type-to-symbol (content-type)
   (cadr (assoc content-type *content-type-list* :test #'equal)))
 
-(defun request-content-type (request)
+(defun request-accepts-type (request)
   (dolist (ct (request-accepts request))
     (awhen (content-type-to-symbol ct)
       (return it))))
@@ -93,7 +93,7 @@ either return a handler or neglect by returning NIL."
           (progn
             (if (listp action)
                 (progn
-                  (let ((content-type (or (request-content-type request)
+                  (let ((content-type (or (request-accepts-type request)
                                           (content-type-to-symbol *default-content-type*)))
                         (method (request-method request)))
                     (apply (car action) (cons method (cons content-type (cdr action))))))
