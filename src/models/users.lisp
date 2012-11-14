@@ -17,34 +17,60 @@
 (in-package #:planet-git)
 
 (defclass login ()
-  ((id :col-type serial :accessor id)
-   (fullname :col-type string :initarg :fullname :accessor user-fullname)
+  ((id :col-type serial
+       :accessor id)
+   (fullname :col-type string
+             :initarg :fullname
+             :accessor user-fullname)
    (location :col-type (or db-null string)
-             :initarg :location :accessor user-location)
-   (username :col-type string :initarg :username :accessor user-username)
-   (password :col-type string :initarg :password :accessor user-password))
+             :initarg :location
+             :accessor user-location)
+   (username :col-type string
+             :initarg :username
+             :accessor user-username)
+   (password :col-type string
+             :initarg :password
+             :accessor user-password))
   (:metaclass dao-class)
   (:keys id))
 
 (defclass email ()
-  ((id :col-type serial :accessor id)
-   (user-id :col-type integer :initarg :user-id :accessor email-user-id)
-   (email :col-type string :initarg :email :accessor email-address)
-   (primary :col-type boolean :initform nil
-            :initarg :primary :accessor email-primary)
-   (verified :col-type boolean  :initform nil
-             :initarg :verified :accessor email-verified))
+  ((id :col-type serial
+       :accessor id)
+   (user-id :col-type integer
+            :initarg :user-id
+            :accessor email-user-id)
+   (email :col-type string
+          :initarg :email
+          :accessor email-address)
+   (primary :col-type boolean
+            :initform nil
+            :initarg :primary
+            :accessor email-primary)
+   (verified :col-type boolean
+             :initform nil
+             :initarg :verified
+             :accessor email-verified))
   (:metaclass dao-class)
-  (:keys id user-id))
+  (:keys id))
 
 (defclass key ()
-  ((id :col-type serial :accessor id)
-   (user-id :col-type integer :initarg :user-id :accessor key-user-id)
-   (title :col-type string :initarg :title :accessor key-title)
-   (type :col-type string :initarg :type :accessor key-type)
-   (key :col-type string :initarg :key :accessor key-value))
+  ((id :col-type serial
+       :accessor id)
+   (user-id :col-type integer
+            :initarg :user-id
+            :accessor key-user-id)
+   (title :col-type string
+          :initarg :title
+          :accessor key-title)
+   (type :col-type string
+         :initarg :type
+         :accessor key-type)
+   (key :col-type string
+        :initarg :key
+        :accessor key-value))
   (:metaclass dao-class)
-  (:keys id user-id))
+  (:keys id))
 
 (defgeneric url-for (item action &key &allow-other-keys))
 
