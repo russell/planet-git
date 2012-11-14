@@ -41,34 +41,28 @@
           (unless ,public
             (htm (:span :class "label label-important" "Private"))))))
 
+(defun user-page-toolbar (is-current-user)
+  (when is-current-user
+    (with-html-output (*standard-output* nil)
+      (htm (:a :class "btn primary pull-right"
+               :href "/repository/new"
+               "Add Repository")))))
+
 (defgeneric user-page (method content-type &key username))
 
 (defmethod user-page ((method (eql :get)) (content-type (eql :html)) &key username)
   (let ((user (car (select-dao 'login (:= 'username username)))))
     (if user
         (let ((username (slot-value user 'username))
-              (is-current-user (equal (slot-value user 'username)
-                                      (when (loginp) (slot-value (loginp) 'username)))))
+              (is-current-user (is-current-user user)))
           (render-user-page
-              (user
-               :extra-header (when is-current-user
-                               (htm (:a :class "btn primary pull-right"
-                                        :href "/repository/new"
-                                        "Add Repository"))))
-            (let ((repositories (select-dao
-                                    'repository (:= 'owner-id (slot-value user 'id)))))
-              (labels ((repository-fragment (repos)
-                         (let* ((repo (car repos)) (rest (cdr repos))
-                                (visible (or (slot-value repo 'public)
-                                             (equal (slot-value user 'username)
-                                                    (when (loginp) (slot-value (loginp) 'username)))))
-                                (public (repository-public repo)))
-                           (when (and repo (or visible is-current-user))
-                             (repository-item-fragment (slot-value repo 'name)
-                                                       username
-                                                       public))
-                           (when rest (repository-fragment rest)))))
-                (when repositories (repository-fragment repositories))))))
+              (user :extra-header (user-page-toolbar is-current-user))
+            (let ((repositories (select-dao 'repository (:= 'owner-id (slot-value user 'id)))))
+              (dolist (repo repositories)
+                (let ((visible (or (slot-value repo 'public) is-current-user))
+                      (public (repository-public repo)))
+                  (when (and repo (or visible is-current-user))
+                    (repository-item-fragment (slot-value repo 'name) username public)))))))
         (setf (return-code*) +http-not-found+))))
 
 
