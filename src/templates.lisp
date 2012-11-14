@@ -53,47 +53,44 @@ which it is in fact.  Useful for defining syntactic constructs"
                                  (:li (:a :href "/logout" "Logout")))))
                           (unless (loginp)
                             (htm
-                             (modal ("login-modal"
-                                     "Login"
-                                     :buttons ((:a :href "#" :class "btn btn-primary"
-                                                   :onclick (ps:ps-inline
-                                                                ($ "#login-modal-form"
-                                                                   (submit)))
-
-                                                   "Login")
-                                               (:a :href "#" :class "btn"
-                                                   :onclick (ps:ps-inline
-                                                                ($ "#login-modal"
-                                                                   (modal "hide")))
-                                                   "Cancel")))
-                               (:form :id "login-modal-form" :class "login-form"
-                                      :action "/login" :method "post"
-                                      (:ul
-                                       (:input :type "hidden" :name "came-from"
-                                               :value (request-uri*))
-                                       (:li "Username or Email:")
-                                       (:li (:input :type "text" :name "login"))
-                                       (:li "Password:")
-                                       (:li (:input :type "password" :name "password")))
-                                      (:input :type "submit"
-                                              :style "visibility: hidden;"
-                                              :name "create"
-                                              :value "Create"))
-                               (:script :type "text/javascript"
-                                        (str
-                                         (ps:ps
-                                           (doc-ready
-                                            ($ "#login-modal"
-                                               (on "shown"
-                                                   (lambda ()
-                                                     (console.log "hello")
-                                                     ($ "#login-modal-form input[name=\"login\"]"
-                                                        (focus))))))))))
                              (:li (:a :href "/register" "Register"))
                              (:li (:a :href "#"
                                       :data-target "#login-modal"
                                       :data-toggle "modal"
-                                      "Login"))))))))))
+                                      "Login"))))))))
+   (unless (loginp)
+     (modal ("login-modal"
+             "Login"
+             :buttons ((:a :href "#" :class "btn btn-primary"
+                           :onclick (ps:ps-inline
+                                        ($ "#login-modal-form"
+                                           (submit)))
+
+                           "Login")
+                       (:a :href "#" :class "btn"
+                           :onclick (ps:ps-inline
+                                        ($ "#login-modal"
+                                           (modal "hide")))
+                           "Cancel")))
+       (:form :id "login-modal-form" :class "login-form"
+              :action "/login" :method "post"
+              (:ul
+               (:input :type "hidden" :name "came-from"
+                       :value (request-uri*))
+               (:li "Username or Email:")
+               (:li (:input :type "text" :name "login"))
+               (:li "Password:")
+               (:li (:input :type "password" :name "password"))))
+       (:script :type "text/javascript"
+                (str
+                 (ps:ps
+                   (doc-ready
+                    ($ "#login-modal"
+                       (on "shown"
+                           (lambda ()
+                             (console.log "hello")
+                             ($ "#login-modal-form input[name=\"login\"]"
+                                (focus)))))))))))))
 
 (defmacro render-standard-page ((&key title (subtitle "") (body-class "span10") page-header extra-head) &body body)
   "The base page template"
@@ -147,7 +144,7 @@ which it is in fact.  Useful for defining syntactic constructs"
                      '((:a :href "#" :class "btn btn-primary" "Primary")
                        (:a :href "#" :class "btn" "Secondary")))))
     `(htm
-      (:div :id ,id :class "modal hide fade"
+      (:div :id ,id :class "modal hide fade" :role "dialog"
             (:div :class "modal-header"
                   (:button :class "close" :data-dismiss "modal" "&times;")
                   (:h3 ,heading))
