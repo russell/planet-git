@@ -23,11 +23,14 @@
         (user (cond
                 ((typep username-or-user 'login)
                  username-or-user)
+                ((null username-or-user)
+                 nil)
                 (t
                  (car (select-dao 'login (:= 'username username-or-user)))))))
     (when (and current-user user
                (eql (slot-value user 'id)
-                      (slot-value current-user 'id))))))
+                      (slot-value current-user 'id)))
+      current-user)))
 
 (def-who-macro repository-item-fragment (name owner public)
   `(htm
@@ -69,85 +72,51 @@
         (setf (return-code*) +http-not-found+))))
 
 
-(def-who-macro* email-item-fragment (user email)
+(defmethod email-item-fragment ((email email))
   "this fragment renders a users email address as a list item with a
 delete button"
-  (htm
-   (:tr
-    (:td
-	 (:a :class "close"
-         :href (str
-                (url-join (user-username user)
-                          "settings"
-                          "email"
-                          (write-to-string (id email))
-                          "delete"))
-	     (str "x"))
-	 (str (email-address email))))))
+  (let ((url (url-for email :delete)))
+    (with-html-output (*standard-output* nil)
+      (htm
+       (:tr
+        (:td
+         (:a :class "close" :href url (str "x"))
+         (str (email-address email))))))))
 
-(def-who-macro* key-item-fragment (user key)
+(defmethod key-item-fragment ((key key))
   "this fragment renders a users email address as a list item with a
 delete button"
-  (htm
-   (:tr
-    (:td
-	 (:a :class "close"
-         :href (str
-                (url-join (user-username user)
-                          "settings"
-                          "key"
-                          (write-to-string (id key))
-                          "delete"))
-	     (str "x"))
-	 (str (key-title key))))))
+  (let ((url (url-for key :delete)))
+    (with-html-output (*standard-output* nil)
+      (htm
+       (:tr
+        (:td
+         (:a :class "close" :href url (str "x"))
+         (str (key-title key))))))))
 
 
-(def-who-macro* user-settings-tmpl (user emails keys)
+(def-who-macro* user-settings-tmpl (user emails keys user-form email-form key-form)
   (render-standard-page (:title (str (user-username user))
                          :page-header
                          ((:img :src (user-gravatar-url user :size 40))
-                          (:h1 (:a :href (url-join (user-username user))
+                          (:h1 (:a :href (url-for user :home)
                                    (str (user-username user)))
                                (:small "Settings"))))
     (widget-tabs
      ("Personal"
       (:h2 "Personal Information")
-      (form-fragment login-form
-                     (('fullname "Fullname:" "text" :value (user-fullname user)))
-                     :class "well form-stacked"
-                     :buttons ((:input :type "submit"
-                                       :class "btn primary"
-                                       :name "login-form-submit"
-                                       :value "Save")))
+      (render-widget user-form)
       (:h2 "Emails")
       (:table :class "table"
-              (labels ((email-fragment (emails)
-                         (let* ((email (car emails)) (rest (cdr emails)))
-                           (email-item-fragment user email)
-                           (when rest (email-fragment rest)))))
-                (when emails (email-fragment emails))))
-      (form-fragment email-form
-                     (('email "Email:" "text"))
-                     :class "well form-inline"
-                     :buttons ((:input :type "submit"
-                                       :class "btn primary"
-                                       :name "email-form-submit"
-                                       :value "Add"))))
+              (dolist (email emails)
+                (email-item-fragment email)))
+      (render-widget email-form))
      ("Keys"
       (:h2 "Keys")
       (:table :class "table"
-              (labels ((key-fragment (keys)
-                         (let* ((key (car keys)) (rest (cdr keys)))
-                           (key-item-fragment user key)
-                           (when rest (key-fragment rest)))))
-                (when keys (key-fragment keys))))
-      (form-fragment key-form
-                     (('key "Key:" "textarea" :class "input-xlarge" :rows 3))
-                     :class "well form-stacked"
-                     :buttons ((:input :type "submit"
-                                       :class "btn primary"
-                                       :name "key-form-submit"
-                                       :value "Save")))))))
+              (dolist (key keys)
+                (key-item-fragment key)))
+      (render-widget key-form)))))
 
 
 (defclass email-form (form)
@@ -158,46 +127,65 @@ delete button"
           :validators (:required :email)))
   (:metaclass form-class))
 
-(defmethod save-form ((form key-form))
+(defmethod save-form ((form email-form))
+  "save form then reset it's content."
   (insert-dao
    (make-instance 'email
                   :user-id (slot-value (loginp) 'id)
-                  :email (slot-valke form 'email))))
+                  :email (slot-value form 'email)))
+  (setf (slot-value form 'email) ""))
 
 (defclass key-form (form)
   ((key :parameter-type string
-          :request-type :post
-          :initform ""
-          :type :text-area
-          :validators (:required :ssh-key)))
+        :request-type :post
+        :initform ""
+        :type :text-area
+        :validators (:required :ssh-key)))
   (:metaclass form-class))
 
 (defmethod save-form ((form key-form))
-  (insert-dao (key-parse (slot-value form 'key))))
+  "save form then reset it's content."
+  (insert-dao (key-parse (slot-value form 'key)))
+  (setf (slot-value form 'key) ""))
 
 (defclass user-form (form)
   ((fullname :parameter-type string
-          :request-type :post
-          :initform ""
-          :type :text-area
-          :validators (:required)))
+             :request-type :post
+             :initarg :fullname
+             :initform ""
+             :type :text
+             :validators (:required)))
   (:metaclass form-class))
 
-(defmethod save-form ((form key-form))
+(defmethod save-form ((form user-form))
+  "save form then reset it's content."
   (let ((user (get-dao 'login (slot-value (loginp) 'id))))
     (setf (slot-value user 'fullname) (slot-value form 'fullname))
+    (setf (slot-value form 'fullname) "")
     (update-dao user)))
+
 
 (defgeneric user-settings-page (method content-type &key username))
 
 (defmethod user-settings-page ((method (eql :get)) (content-type (eql :html)) &key username)
-  (let* ((user-form (make-instance 'user-form))
-         (email-form (make-instance 'email-form :submit-action "Add"))
-         (key-form (make-instance 'key-form :submit-action "Add"))
-         (user (car (select-dao 'login (:= 'username username))))
+  (let* ((user (car (select-dao 'login (:= 'username username))))
          (is-current-user (is-current-user user)))
     (if is-current-user
-        (progn
+        (let ((emails (select-dao 'email (:= 'user-id (id user))))
+              (keys (select-dao 'key (:= 'user-id (id user))))
+              (user-form (make-instance 'user-form :fullname (slot-value user 'fullname)))
+              (email-form (make-instance 'email-form :submit-action "Add"))
+              (key-form (make-instance 'key-form :submit-action "Add")))
+          (user-settings-tmpl user emails keys user-form email-form key-form))
+        (setf (return-code*) +http-forbidden+))))
+
+(defmethod user-settings-page ((method (eql :post)) (content-type (eql :html)) &key username)
+  (let* ((user (car (select-dao 'login (:= 'username username))))
+         (is-current-user (is-current-user user)))
+    (if is-current-user
+        (let ((user-form (make-instance 'user-form :fullname (slot-value user 'fullname)))
+              (email-form (make-instance 'email-form :submit-action "Add"))
+              (key-form (make-instance 'key-form :submit-action "Add")))
           (cond
             ((validate-form (parse-form email-form))
              (save-form email-form))
@@ -207,25 +195,25 @@ delete button"
              (save-form key-form)))
           (let ((emails (select-dao 'email (:= 'user-id (id user))))
                 (keys (select-dao 'key (:= 'user-id (id user)))))
-            (user-settings-tmpl user emails keys)))
+            (user-settings-tmpl user emails keys user-form email-form key-form)))
         (setf (return-code*) +http-forbidden+))))
 
 
-(define-rest-handler (user-email-delete :uri "^/(\\w+)/settings/email/(\\w+)/delete/?$" :args (username email-id)) ()
+(defmethod email-delete-page ((method (eql :get)) (content-type T) &key username email-id)
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
        (is-current-user (is-current-user user)))
     (if is-current-user
-	(let ((email (car
-		      (select-dao 'email
-					     (:and (:= 'id email-id) (:= 'user-id (id user)))))))
-	  (if email
-	      (delete-dao email)
-	      (setf (return-code*) +http-not-found+))
-	  (redirect (url-join (user-username user) "settings")))
-	(setf (return-code*) +http-forbidden+))))
+        (let ((email (car
+                      (select-dao 'email
+                          (:and (:= 'id email-id) (:= 'user-id (id user)))))))
+          (if email
+              (delete-dao email)
+              (setf (return-code*) +http-not-found+))
+          (redirect (url-for user :settings)))
+        (setf (return-code*) +http-forbidden+))))
 
-(define-rest-handler (user-key-delete :uri "^/(\\w+)/settings/key/(\\w+)/delete/?$" :args (username key-id)) ()
+(defmethod key-delete-page ((method (eql :get)) (content-type T) &key username key-id)
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
        (is-current-user (is-current-user user)))
@@ -236,7 +224,7 @@ delete button"
 	  (if key
 	      (delete-dao key)
 	      (setf (return-code*) +http-not-found+))
-	  (redirect (url-join (user-username user) "settings")))
+	  (redirect (url-for user :settings)))
 	(setf (return-code*) +http-forbidden+))))
 
 
@@ -244,8 +232,15 @@ delete button"
                       :uri "^/(\\w+)/settings/add-key?$"
                       :args (username))
     ()
-  (let*
-      ((user (car (select-dao 'login (:= 'username username))))
-       (is-current-user (is-current-user user)))
-    ;; what the heck happened here... must have lost interest...
+  (let* ((user (car (select-dao 'login (:= 'username username))))
+         (is-current-user (is-current-user user)))
+    (if is-current-user
+        (let ((key (car
+                    (select-dao 'key
+                        (:and (:= 'id key-id) (:= 'user-id (id user)))))))
+          (if key
+              (delete-dao key)
+              (setf (return-code*) +http-not-found+))
+          (redirect (url-for user :settings)))
+        (setf (return-code*) +http-forbidden+))
     ))

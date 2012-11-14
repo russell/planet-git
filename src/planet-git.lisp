@@ -32,8 +32,6 @@
 
 (setq *rest-handler-alist*
       (list
-       (list "^/(\\w+)/settings/email/(\\w+)/delete/?$" t "text/html" 'user-email-delete)
-       (list "^/(\\w+)/settings/key/(\\w+)/delete/?$" t "text/html" 'user-key-delete)
        (list "^/(\\w+)/settings/add-key?$" t "text/html" 'add-ssh-key)
        (list "^/[^/]+/[^/]+/$" t "text/html" 'repository-home-page)
        (list "^/[^/]+/[^/]+/key/[^/]+/$" t "text/html" 'repository-key-access)

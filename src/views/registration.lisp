@@ -77,13 +77,13 @@
           (session-attach-user (save-form form))
           (redirect "/"))
         (render-standard-page (:title "Register")
-          (render form)))))
+          (render-widget form)))))
 
 (defmethod register-page ((method (eql :get)) (content-type (eql :html)))
   (let ((form (make-instance 'register-form :submit-action "Register")))
     (parse-form form)
     (render-standard-page (:title "Register")
-      (render form))))
+      (render-widget form))))
 
 
 ;;
@@ -117,6 +117,9 @@
             "Error, invalid username or password.")))
   (valid-p form))
 
+(defmethod render-widget ((form login-form))
+  (form-widget form :class "login-form form-horizontal"))
+
 (defmethod render-buttons ((form login-form))
   (with-html-output (*standard-output* nil)
     (htm
@@ -136,12 +139,12 @@
     (if (validate-form login-form)
         (redirect (slot-value login-form 'came-from))
         (render-standard-page (:title "Login")
-          (render login-form)))))
+          (render-widget login-form)))))
 
 (defmethod login-page ((method (eql :get)) (content-type (eql :html)))
   (let ((login-form (make-instance 'login-form)))
     (render-standard-page (:title "Login")
-      (render login-form))))
+      (render-widget login-form))))
 
 
 ;;

@@ -32,8 +32,10 @@
                 #:validate-form
                 #:parse-form
                 #:form-class
+                #:form-widget
                 #:render
                 #:render-buttons
+                #:render-widget
                 #:form-real-name
                 #:def-validator
                 #:valid-p

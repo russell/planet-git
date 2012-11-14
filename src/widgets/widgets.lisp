@@ -24,18 +24,21 @@
             :accessor view
             :documentation "page contents.")))
 
+(defgeneric render-widget (widget))
+
 (defmethod render-widget ((widget widget))
   (funcall (view widget) widget))
 
-(defmacro define-widget (name context &body pseudo-html-form)
+(defmacro make-widget (&body pseudo-html-form)
   (let ((widget (gensym)))
-    `(defun ,name ,context
-       (let ((,widget (make-instance 'widget
-                                     :view (lambda (widget)
-                                                (declare (ignore widget))
-                                                (with-html-output (*standard-output* nil)
-                                                  ,@pseudo-html-form)))))
-         ,widget))))
+    `(prog1
+         (let ((,widget (make-instance 'widget))
+               (func (lambda (widget)
+                       (declare (ignore widget))
+                       (with-html-output (*standard-output* nil)
+                         ,@pseudo-html-form))))
+           (setf (slot-value ,widget 'view) func))
+           ,widget)))
 
 (defclass form-class (standard-class)
   ())
@@ -127,23 +130,24 @@
 ;; Form views
 ;;
 
-(defgeneric render (widget))
+(defun form-widget (form &key (class "form-horizontal"))
+    (with-html-output (*standard-output* nil)
+      (htm
+       (:form :id (string-downcase (symbol-name 'login-form))
+              :action (slot-value form 'action)
+              :method (string-downcase (symbol-name (slot-value form 'method)))
+              :class class
+              (when (not (= (hash-table-count (form-errors form)) 0))
+                (htm
+                 (:div :class "alert alert-error"
+                       (:button :class "close" :data-dismiss "alert" :type "button" "x")
+                       (:strong "error:") " found in the form.")))
+              (dolist (field (form-field-slots form))
+                (render-field form (field-type field) (slot-definition-name field)))
+              (render-buttons form)))))
 
-(defmethod render ((form form))
-  (with-html-output (*standard-output* nil)
-    (htm
-     (:form :id (string-downcase (symbol-name 'login-form))
-            :action (slot-value form 'action)
-            :method (string-downcase (symbol-name (slot-value form 'method)))
-            :class "login-form form-horizontal"
-            (when (not (= (hash-table-count (form-errors form)) 0))
-              (htm
-               (:div :class "alert alert-error"
-                     (:button :class "close" :data-dismiss "alert" :type "button" "x")
-                     (:strong "error:") " found in the form.")))
-            (dolist (field (form-field-slots form))
-              (render-field form (field-type field) (slot-definition-name field)))
-            (render-buttons form)))))
+(defmethod render-widget ((form form))
+  (form-widget form))
 
 (defgeneric render-buttons (form)
   (:method ((form form))

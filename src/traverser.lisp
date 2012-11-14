@@ -16,20 +16,30 @@
 
 (in-package #:planet-git)
 
-(defparameter *traversal-path*
-  '(nil home-page
-    ("login" login-page)
-    ("logout" logout-page)
-    ("register" register-page)
-    (:username user-page
-     ("settings" user-settings-page)
-     ;;  ("email" user-email-page)
-     ;;  ("key" user-key-page))
-     ;; (:repository repository-home-page
-     ;;  ("key" repository-key-access)
-     ;;  ("branch" repository-branch-page)
-     ;;  ("commits" repository-commits))
-    )))
+(defun 404-page (&rest rest)
+  (declare (ignore rest))
+  (setf (return-code*) +http-not-found+))
+
+(defparameter *traversal-path* nil)
+
+(setq *traversal-path*
+      '(nil home-page
+        ("login" login-page)
+        ("logout" logout-page)
+        ("register" register-page)
+        (:username user-page
+         ("settings" user-settings-page
+          ("email" 404-page
+           (:email-id 404-page
+            ( "delete" email-delete-page)))
+          ("key" 404-page
+           (:key-id 404-page
+            ("delete" key-delete-page)))))
+        ;; (:repository repository-home-page
+        ;;  ("key" repository-key-access)
+        ;;  ("branch" repository-branch-page)
+        ;;  ("commits" repository-commits))
+        ))
 
 (defvar *content-type-list*
   '(("text/html" :html)

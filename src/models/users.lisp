@@ -46,6 +46,20 @@
   (:metaclass dao-class)
   (:keys id user-id))
 
+(defgeneric url-for (item action &key &allow-other-keys))
+
+(defmethod url-for ((email email) (action (eql :delete)) &key (user (loginp)))
+  (url-join (user-username user) "settings" "email" (write-to-string (id email)) "delete"))
+
+(defmethod url-for ((key key) (action (eql :delete)) &key (user (loginp)))
+  (url-join (user-username user) "settings" "key" (write-to-string (id key)) "delete"))
+
+(defmethod url-for ((user login) (action (eql :settings)) &key)
+  (url-join (user-username user) "settings"))
+
+(defmethod url-for ((user login) (action (eql :home)) &key)
+  (url-join (user-username user)))
+
 (defun create-user (username fullname password email)
   "Create a new user from the attributes USERNAME FULLNAME PASSWORD
 and set the primary email address to EMAIL"

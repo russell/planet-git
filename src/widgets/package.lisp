@@ -50,4 +50,5 @@
    #:valid-p
    #:form-errors
    #:widget
-   #:form))
+   #:form
+   #:form-widget))
