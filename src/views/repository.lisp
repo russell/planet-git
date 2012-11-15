@@ -54,11 +54,11 @@
                                            (:= 'name repository))))))
 
     (setf (content-type*) "application/json")
-    (with-html-output-to-string (*standard-output*)
+    (json-output-to-string
       (with-repository ((repository-real-path repository))
         (let* ((branches (git-list :reference))
-               (default-branch (selected-branch repository branches head-ref))
-               (walker (revision-walk (or branch default-branch))))
+               (branch (selected-branch repository branches head-ref))
+               (walker (revision-walk  branch)))
           (with-array ()
             (dotimes (count 10 t)
               (let ((commit (git-next walker)))
