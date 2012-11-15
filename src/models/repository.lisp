@@ -70,7 +70,7 @@ will not be PUBLIC by default by default."
 (defgeneric has-permission-p (user thing permission))
 
 (defmethod has-permission-p ((user login) (repository repository) (permission (eql :view)))
-  (or (slot-value repository 'public)
+  (or (repository-public repository)
       (is-owner-p user repository)))
 
 (defmethod has-permission-p ((user T) (repository repository) (permission (eql :view)))

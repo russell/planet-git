@@ -45,9 +45,9 @@
               (user :extra-header (user-page-toolbar is-current-user))
             (let ((repositories (users-repositories user)))
               (dolist (repo repositories)
-                (let ((visible (or (slot-value repo 'public) is-current-user))
+                (let ((visible (has-permission-p (loginp) repo :view))
                       (public (repository-public repo)))
-                  (when (and repo (or visible is-current-user))
+                  (when visible
                     (repository-item-fragment (slot-value repo 'name) username public)))))))
         (setf (return-code*) +http-not-found+))))
 
