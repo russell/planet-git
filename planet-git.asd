@@ -43,15 +43,12 @@
                         :components
                         ((:file "package")
                          (:file "config" :depends-on ("package"))
-                         (:file "compat" :depends-on ("package"))
                          (:file "traverser" :depends-on ("package"))
                          (:file "utils" :depends-on ("package"))
-                         (:file "easy-handlers" :depends-on ("package"))
-                         (:file "rest" :depends-on ("package"))
+                         (:file "parameters" :depends-on ("package"))
                          (:file "git" :depends-on ("package"))
                          (:file "auth" :depends-on ("package"))
                          (:file "templates" :depends-on ("package" "models" "auth"))
-                         (:file "forms" :depends-on ("package"))
                          (:file "validators" :depends-on ("package"))
                          (:module "models"
                                   :depends-on ("package" "auth")
@@ -66,10 +63,9 @@
                                    (:parenscript-file "commit")))
                          (:module "views"
                                   :depends-on ("package"
-                                               "forms"
                                                "validators"
                                                "templates"
-                                               "easy-handlers"
+                                               "parameters"
                                                "rest"
                                                "models")
                                   :components

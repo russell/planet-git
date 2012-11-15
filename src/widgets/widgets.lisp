@@ -234,7 +234,7 @@
       (let ((name (slot-definition-name slot)))
         (with-slots (parameter-type request-type real-name)
             slot
-          (awhen (compute-parameter real-name
+          (awhen (hunchentoot::compute-parameter real-name
                                     (or parameter-type default-parameter-type)
                                     (or request-type default-request-type))
             (setf (slot-value form name) it))))))
