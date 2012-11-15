@@ -31,7 +31,7 @@
   (when is-current-user
     (with-html-output (*standard-output* nil)
       (htm (:a :class "btn primary pull-right"
-               :href "/repository/new"
+               :href (url-for (make-instance 'repository) :new)
                "Add Repository")))))
 
 (defgeneric user-page (method content-type &key username))
