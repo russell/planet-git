@@ -234,10 +234,10 @@
           (let* ((branches (git-list :reference))
                  (branch (selected-branch repository branches branch)))
             (render-user-page (user :title
-                                    (htm (:a :href (url-join (slot-value user 'username))
-                                             (str (user-username user)))
-                                         (:span (str "/"))
-                                         (str (repository-name repository)))
+                               (htm (:a :href (url-join (slot-value user 'username))
+                                        (str (user-username user)))
+                                    (:span (str "/"))
+                                    (str (repository-name repository)))
                                     :subtitle ""
                                     :extra-head ((:script :type "text/javascript" :src "/static/psos.js")
                                                  (:script :type "text/javascript" :src "/static/repository.js")))
@@ -248,14 +248,15 @@
                  (htm
                   (:div :class "well"
                         (:h2 "Welcome to your new repository.")
-                        (:p "First things first, if you haven't already done so,
-            you should set up your user preferences."
-                            (:pre (format t "git config --global user.name \"~A\"
-git config --global user.email \"~A\"" (user-fullname user) (user-primary-email user))))
+                        (:p "First things first, if you haven't already done so, you should set up your user preferences."
+                            (:pre (format t "git config --global user.name \"~A\"~%git config --global user.email \"~A\""
+                                          (user-fullname user)
+                                          (slot-value (user-primary-email user) 'email))))
                         (:p "If you are adding an existing repository begin by,"
-                            (:pre (format t "cd existing_repository
-git remote add origin ~A:~A/~A
-git push origin master" *git-ssh-host* (user-username user) (repository-name repository)))))))
+                            (:pre (format t "cd existing_repository~%git remote add origin ~A:~A/~A!~%git push origin master"
+                                          *git-ssh-host*
+                                          (user-username user)
+                                          (repository-name repository)))))))
                 ((eq branch nil)
                  (htm
                   (:div :class "well"
