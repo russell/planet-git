@@ -165,3 +165,20 @@ directory doesn't exist then create it."
     (eval
      `(make-instance 'key :type ,type :key ,key :title ,title
                      ,@(when (loginp) (list :user-id (id (loginp))))))))
+
+
+(defun is-current-user-p (username-or-user)
+  "Is the USERNAME-OR-USER the current logged in user.  If so return
+the user."
+  (let ((current-user (loginp))
+        (user (cond
+                ((typep username-or-user 'login)
+                 username-or-user)
+                ((null username-or-user)
+                 nil)
+                (t
+                 (car (select-dao 'login (:= 'username username-or-user)))))))
+    (when (and current-user user
+               (eql (slot-value user 'id)
+                      (slot-value current-user 'id)))
+      current-user)))
