@@ -206,19 +206,3 @@ delete button"
 	      (setf (return-code*) +http-not-found+))
 	  (redirect (url-for user :settings)))
 	(setf (return-code*) +http-forbidden+))))
-
-
-(define-rest-handler (add-ssh-key
-                      :uri "^/(\\w+)/settings/add-key?$"
-                      :args (username))
-    ()
-  (let* ((user (car (select-dao 'login (:= 'username username))))
-         (is-current-user (is-current-user-p user)))
-    (if is-current-user
-        (let (())
-          (if key
-              (delete-dao key)
-              (setf (return-code*) +http-not-found+))
-          (redirect (url-for user :settings)))
-        (setf (return-code*) +http-forbidden+))
-    ))
