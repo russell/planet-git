@@ -44,6 +44,7 @@
                         ((:file "package")
                          (:file "config" :depends-on ("package"))
                          (:file "traverser" :depends-on ("package"))
+                         (:file "json" :depends-on ("package"))
                          (:file "utils" :depends-on ("package"))
                          (:file "parameters" :depends-on ("package"))
                          (:file "git" :depends-on ("package"))
@@ -65,8 +66,8 @@
                                   :depends-on ("package"
                                                "validators"
                                                "templates"
+                                               "json"
                                                "parameters"
-                                               "rest"
                                                "models")
                                   :components
                                   ((:file "home")
