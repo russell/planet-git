@@ -43,13 +43,18 @@ will not be PUBLIC by default by default."
                                 *git-user-homedir*)))
     ;; TODO this should check that there isn't a repository already
     (ensure-directories-exist path)
-    (insert-dao
-     (make-instance 'repository
-                    :owner-id (slot-value owner 'id)
-                    :name name
-                    :path (namestring relative-path)
-                    :public public))
-    (ensure-repository-exist path t)))
+    (prog1
+        (insert-dao
+         (make-instance 'repository
+                        :owner-id (slot-value owner 'id)
+                        :name name
+                        :path (namestring relative-path)
+                        :public public))
+      (ensure-git-repository-exist path t))))
+
+(defmethod url-for ((repository repository) (action (eql :get)) &key)
+  (let ((user (get-dao 'login (slot-value repository 'owner-id))))
+    (url-join (slot-value user 'username) (slot-value repository 'name))))
 
 (defgeneric repository-real-path (repo)
   (:method ((repo repository))

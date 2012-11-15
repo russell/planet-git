@@ -40,6 +40,12 @@
            (setf (slot-value ,widget 'view) func))
            ,widget)))
 
+(defmacro wlambda (args &body pseudo-html-form)
+  `(lambda ,args
+    (with-html-output (*standard-output* nil)
+      ,@pseudo-html-form)))
+
+
 (defclass form-class (standard-class)
   ())
 
@@ -64,7 +70,19 @@
            :documentation "the form submit method.")
    (real-name :initarg :real-name
               :accessor form-real-name
-              :documentation "the real name of the form."))
+              :documentation "the real name of the form.")
+   (buttons :initarg :buttons
+            :accessor form-buttons
+            :initform (wlambda (form)
+                        (htm
+                         (:div :class "form-actions"
+                               (:button :class "btn btn-primary"
+                                        :type "submit"
+                                        :name (form-real-name form)
+                                        :value (form-real-name form)
+                                        (str (slot-value form 'submit-action))))))
+            :documentation "the buttons that will be used to sumbit
+            the form."))
   (:metaclass form-class))
 
 (defmethod shared-initialize :after ((class form) slot-names &key &allow-other-keys)
@@ -144,18 +162,11 @@
                        (:strong "error:") " found in the form.")))
               (dolist (field (form-field-slots form))
                 (render-field form (field-type field) (slot-definition-name field)))
-              (render-buttons form)))))
+              (when (form-buttons form)
+                (funcall (form-buttons form) form))))))
 
 (defmethod render-widget ((form form))
   (form-widget form))
-
-(defgeneric render-buttons (form)
-  (:method ((form form))
-    (with-html-output (*standard-output* nil)
-      (htm
-       (:div :class "form-actions"
-             (:button :class "btn btn-primary" :type "submit" :name (form-real-name form) :value
-                      "login" (str (slot-value form 'submit-action))))))))
 
 ;;
 ;; Input field views
@@ -211,6 +222,9 @@
   (render-input form field-type field-name))
 
 (defmethod render-field ((form form) (field-type (eql :number)) field-name)
+  (render-input form field-type field-name))
+
+(defmethod render-field ((form form) (field-type (eql :checkbox)) field-name)
   (render-input form field-type field-name))
 
 (defmethod parse-form ((form form))

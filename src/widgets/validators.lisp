@@ -36,13 +36,15 @@
 Within the body FIELDNAME and VALUE will be bound to variables and
 available for use during the validation, errors messages should be
 returned as a string."
-  (let ((vname (gensym)))
+  (let ((vname (gensym))
+        (fieldname (intern "FIELDNAME"))
+        (value (intern "VALUE")))
     `(let ((,vname ,(intern (symbol-name name) "KEYWORD")))
        (when (gethash ,vname *validators*)
          (warn "Redefinition of validator ~S" ,vname))
        (setf (gethash ,vname *validators*)
-             (lambda (fieldname value)
-               (let ((fieldname (symbol-name fieldname)))
+             (lambda (,fieldname ,value)
+               (let ((,fieldname (symbol-name ,fieldname)))
                    ,@body))))))
 
 (def-validator required

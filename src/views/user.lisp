@@ -18,20 +18,6 @@
 
 (in-package #:planet-git)
 
-(defun is-current-user (username-or-user)
-  (let ((current-user (loginp))
-        (user (cond
-                ((typep username-or-user 'login)
-                 username-or-user)
-                ((null username-or-user)
-                 nil)
-                (t
-                 (car (select-dao 'login (:= 'username username-or-user)))))))
-    (when (and current-user user
-               (eql (slot-value user 'id)
-                      (slot-value current-user 'id)))
-      current-user)))
-
 (def-who-macro repository-item-fragment (name owner public)
   `(htm
     (:div :class "well project"
@@ -54,7 +40,7 @@
   (let ((user (car (select-dao 'login (:= 'username username)))))
     (if user
         (let ((username (slot-value user 'username))
-              (is-current-user (is-current-user user)))
+              (is-current-user (is-current-user-p user)))
           (render-user-page
               (user :extra-header (user-page-toolbar is-current-user))
             (let ((repositories (select-dao 'repository (:= 'owner-id (slot-value user 'id)))))
@@ -163,7 +149,7 @@ delete button"
 
 (defmethod user-settings-page ((method (eql :get)) (content-type (eql :html)) &key username)
   (let* ((user (car (select-dao 'login (:= 'username username))))
-         (is-current-user (is-current-user user)))
+         (is-current-user (is-current-user-p user)))
     (if is-current-user
         (let ((emails (select-dao 'email (:= 'user-id (id user))))
               (keys (select-dao 'key (:= 'user-id (id user))))
@@ -175,7 +161,7 @@ delete button"
 
 (defmethod user-settings-page ((method (eql :post)) (content-type (eql :html)) &key username)
   (let* ((user (car (select-dao 'login (:= 'username username))))
-         (is-current-user (is-current-user user)))
+         (is-current-user (is-current-user-p user)))
     (if is-current-user
         (let ((user-form (make-instance 'user-form :fullname (slot-value user 'fullname)))
               (email-form (make-instance 'email-form :submit-action "Add"))
@@ -196,7 +182,7 @@ delete button"
 (defmethod email-delete-page ((method (eql :get)) (content-type T) &key username email-id)
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
-       (is-current-user (is-current-user user)))
+       (is-current-user (is-current-user-p user)))
     (if is-current-user
         (let ((email (car
                       (select-dao 'email
@@ -210,7 +196,7 @@ delete button"
 (defmethod key-delete-page ((method (eql :get)) (content-type T) &key username key-id)
   (let*
       ((user (car (select-dao 'login (:= 'username username))))
-       (is-current-user (is-current-user user)))
+       (is-current-user (is-current-user-p user)))
     (if is-current-user
 	(let ((key (car
 		      (select-dao 'key
@@ -227,11 +213,9 @@ delete button"
                       :args (username))
     ()
   (let* ((user (car (select-dao 'login (:= 'username username))))
-         (is-current-user (is-current-user user)))
+         (is-current-user (is-current-user-p user)))
     (if is-current-user
-        (let ((key (car
-                    (select-dao 'key
-                        (:and (:= 'id key-id) (:= 'user-id (id user)))))))
+        (let (())
           (if key
               (delete-dao key)
               (setf (return-code*) +http-not-found+))

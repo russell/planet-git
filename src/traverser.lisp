@@ -28,10 +28,11 @@
         ("logout" logout-page)
         ("register" register-page)
         (:username user-page
+         ("new" new-repository-page)
          ("settings" user-settings-page
           ("email" 404-page
            (:email-id 404-page
-            ( "delete" email-delete-page)))
+            ("delete" email-delete-page)))
           ("key" 404-page
            (:key-id 404-page
             ("delete" key-delete-page)))))

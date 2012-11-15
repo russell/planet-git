@@ -59,15 +59,3 @@
         :do (let ((validation-error (funcall x (string-downcase (string lname)))))
               (unless (= (length validation-error) 0)
                 (setf (gethash lname lerrors) validation-error))))))
-
-
-(defmacro def-validator (name () &body body)
-  `(defun ,name ()
-     (let ((errors (make-hash-table)))
-       (if (eq (request-method*) :post)
-	   (progn
-	     ,@body))
-       errors)))
-
-(def-validator validate-newrepository ()
-  (validate-field 'name errors #'validate-length))

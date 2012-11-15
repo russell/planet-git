@@ -49,6 +49,7 @@
    #:def-validator
    #:valid-p
    #:form-errors
+   #:wlambda
    #:widget
    #:form
    #:form-widget))

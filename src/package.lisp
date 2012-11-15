@@ -38,6 +38,7 @@
                 #:render-widget
                 #:form-real-name
                 #:def-validator
+                #:wlambda
                 #:valid-p
                 #:form-errors
                 #:widget

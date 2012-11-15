@@ -37,6 +37,33 @@ which it is in fact.  Useful for defining syntactic constructs"
        (with-html-output (*standard-output* nil)
          ,@pseudo-html-form))))
 
+(defclass modal-form (widget)
+  ((id :initarg :id :accessor id)
+   (form :initarg :form :accessor modal-form)
+   (heading :initarg :heading :accessor modal-heading)
+   (buttons :initarg :buttons
+            :accessor modal-buttons
+            :initform (wlambda (modal)
+                        (htm (:button :class "btn btn-primary"
+                                      :type "submit"
+                                      :name (id modal)
+                                      :value (id modal)
+                                      "Close")))
+            :documentation "the buttons that will be used to interact
+            with the modal .")))
+
+(defmethod render-widget ((modal modal-form))
+  (with-html-output (*standard-output* nil)
+    (htm
+     (:div :id (slot-value modal 'id) :class "modal hide fade" :role "dialog"
+            (:div :class "modal-header"
+                  (:button :class "close" :data-dismiss "modal" "&times;")
+                  (:h3 (str (modal-heading modal))))
+            (:div :class "modal-body"
+                  (render-widget (slot-value modal 'form)))
+            (:div :class "modal-footer"
+                  (funcall (modal-buttons modal) modal))))))
+
 (def-who-macro* widget-navbar ()
   (htm
    (:div :class "navbar navbar-fixed-top"
@@ -59,38 +86,49 @@ which it is in fact.  Useful for defining syntactic constructs"
                                       :data-toggle "modal"
                                       "Login"))))))))
    (unless (loginp)
-     (modal ("login-modal"
-             "Login"
-             :buttons ((:a :href "#" :class "btn btn-primary"
-                           :onclick (ps:ps-inline
-                                        ($ "#login-modal-form"
-                                           (submit)))
-
-                           "Login")
-                       (:a :href "#" :class "btn"
-                           :onclick (ps:ps-inline
-                                        ($ "#login-modal"
-                                           (modal "hide")))
-                           "Cancel")))
-       (:form :id "login-modal-form" :class "login-form"
-              :action "/login" :method "post"
-              (:ul
-               (:input :type "hidden" :name "came-from"
-                       :value (request-uri*))
-               (:li "Username or Email:")
-               (:li (:input :type "text" :name "login"))
-               (:li "Password:")
-               (:li (:input :type "password" :name "password"))))
-       (:script :type "text/javascript"
-                (str
-                 (ps:ps
-                   (doc-ready
-                    ($ "#login-modal"
-                       (on "shown"
-                           (lambda ()
-                             (console.log "hello")
-                             ($ "#login-modal-form input[name=\"login\"]"
-                                (focus)))))))))))))
+     (let* ((login-form (make-instance
+                         'login-form
+                         :action "/login"
+                         :real-name "login-modal-form"
+                         :buttons (wlambda (form)
+                                    (htm
+                                     (:input :type "submit"
+                                             :style "visibility: hidden;"
+                                             :name (form-real-name form)
+                                             :value "Login")))))
+            (login-modal (make-instance
+                          'modal-form
+                          :id "login-modal"
+                          :heading "Login"
+                          :form login-form
+                          :buttons (lambda (modal)
+                                     (let* ((form (modal-form modal))
+                                            (modal-id (string-concat "#" (id modal)))
+                                            (form-id (string-concat "#" (form-real-name form))))
+                                       (with-html-output (*standard-output* nil)
+                                         (htm
+                                          (:a :href "#" :class "btn"
+                                              :onclick (ps:ps-inline*
+                                                           `($ ,modal-id
+                                                              (modal "hide")))
+                                              "Cancel")
+                                          (:a :href "#" :class "btn btn-primary"
+                                              :onclick (ps:ps-inline*
+                                                           `($ ,form-id
+                                                              (submit)))
+                                              "Login")
+                                          )))))))
+       (render-widget login-modal)
+       (with-html-output (*standard-output* nil)
+         (:script :type "text/javascript"
+                  (str
+                   (ps:ps
+                     (doc-ready
+                      ($ "#login-modal"
+                         (on "shown"
+                             (lambda ()
+                               ($ "#login-modal-form input[name=\"login\"]"
+                                  (focus))))))))))))))
 
 (defmacro render-standard-page ((&key title (subtitle "") (body-class "span10") page-header extra-head) &body body)
   "The base page template"
@@ -137,21 +175,6 @@ which it is in fact.  Useful for defining syntactic constructs"
          (:small ,(or subtitle `(str (slot-value ,user 'fullname)))))
          ,(when extra-header extra-header)))
      ,@body))
-
-
-(def-who-macro modal ((id heading &key buttons) &body body)
-  (let ((buttons (if buttons buttons
-                     '((:a :href "#" :class "btn btn-primary" "Primary")
-                       (:a :href "#" :class "btn" "Secondary")))))
-    `(htm
-      (:div :id ,id :class "modal hide fade" :role "dialog"
-            (:div :class "modal-header"
-                  (:button :class "close" :data-dismiss "modal" "&times;")
-                  (:h3 ,heading))
-            (:div :class "modal-body"
-                  ,@body)
-            (:div :class "modal-footer"
-                  ,@buttons)))))
 
 
 (def-who-macro widget-tabs (&rest tabs)

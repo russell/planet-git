@@ -106,34 +106,48 @@
      (setf (return-code*) +http-forbidden+)))
   "") ;; return an empty string for the content
 
+(defun string-concat (&rest strings)
+  (apply #'concatenate 'string strings))
 
-(define-easy-handler
-    (new-repository-page :uri "/repository/new")
-    ((name :parameter-type 'string)
-     (public :parameter-type 'boolean))
-  (let* ((errors (validate-newrepository)))
-    (if (and (= (hash-table-count errors) 0)
-	     (eq (request-method*) :post))
-	(progn
-	  (create-repository name (loginp) public)
-	  (redirect (concatenate 'string "/"
-					     (slot-value (loginp) 'username) "/"name "/")))
-    (render-standard-page (:title "New Repository")
-	(:form :action "" :method "post"
-	       (if (> (hash-table-count errors) 0)
-		   (htm
-		    (:div :class "alert alert-error"
-                  (:button :class "close" :data-dismiss "alert" :type "button" "x")
-                  (:strong "Error:") " found in the form.")))
-	       (field-fragment "name" "Name:" "text"
-		      :error (gethash 'name errors))
-	       (field-fragment "public" "Public:" "checkbox"
-		      :error (gethash 'public errors))
-	       (:div :class "actions"
-		     (:input :type "submit"
-			     :class "btn primary"
-			     :name "submit"
-			     :value "Create")))))))
+(def-validator sensible-repository-name
+  (when (car (list (scan "[^a-zA-Z0-9.\-_]" value)))
+    (string-concat "Error, " fieldname " can only contain alphanumeric, -, _ or . characters.")))
+
+(defclass repository-form (form)
+  ((name :parameter-type string
+         :request-type :post
+         :initform ""
+         :type :text
+         :validators (:required :sensible-repository-name))
+   (public :parameter-type string
+           :request-type :post
+           :initform nil
+           :type :checkbox))
+  (:metaclass form-class))
+
+(defmethod save-form ((form repository-form))
+  "save form then reset it's content."
+  (create-repository (slot-value form 'name) (loginp) (slot-value form 'public)))
+
+(defgeneric new-repository-page (method content-type &key username))
+
+(defmethod new-repository-page ((method (eql :get)) (content-type (eql :html)) &key username)
+  (let ((repo-form (make-instance 'repository-form :submit-action "Create"))
+        (is-current-user (is-current-user-p username)))
+    (if is-current-user
+        (render-standard-page (:title "New Repository")
+          (render-widget repo-form))
+        (setf (return-code*) +http-forbidden+))))
+
+(defmethod new-repository-page ((method (eql :post)) (content-type (eql :html)) &key username)
+  (let ((repo-form (make-instance 'repository-form :submit-action "Create"))
+        (is-current-user (is-current-user-p username)))
+    (if is-current-user
+        (if (validate-form (parse-form repo-form))
+            (redirect (url-for (save-form repo-form) :get))
+            (render-standard-page (:title "New Repository")
+              (render-widget repo-form)))
+        (setf (return-code*) +http-forbidden+))))
 
 (define-easy-handler (repository-js :uri "/static/repository.js")
     ()

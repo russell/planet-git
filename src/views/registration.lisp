@@ -120,21 +120,25 @@
 (defmethod render-widget ((form login-form))
   (form-widget form :class "login-form form-horizontal"))
 
-(defmethod render-buttons ((form login-form))
-  (with-html-output (*standard-output* nil)
-    (htm
-     (:div :class "form-actions"
-           (:button :class "btn btn-primary"
-                    :type "submit"
-                    :name (form-real-name form)
-                    :value "login"
-                    "Login")
-           (:a :class "btn" :href (str (slot-value form 'planet-git::came-from)) "Cancel")))))
-
 (defgeneric login-page (method content-type))
 
+(defun login-page-form ()
+  (make-instance
+   'login-form
+   :buttons (wlambda (form)
+              (htm
+               (:div :class "form-actions"
+                     (:a :class "btn"
+                         :href (str (slot-value form 'planet-git::came-from))
+                         "Cancel")
+                     (:button :class "btn btn-primary"
+                              :type "submit"
+                              :name (form-real-name form)
+                              :value "login"
+                              "Login"))))))
+
 (defmethod login-page ((method (eql :post)) (content-type (eql :html)))
-  (let ((login-form (make-instance 'login-form)))
+  (let ((login-form (login-page-form)))
     (parse-form login-form)
     (if (validate-form login-form)
         (redirect (slot-value login-form 'came-from))
@@ -142,7 +146,7 @@
           (render-widget login-form)))))
 
 (defmethod login-page ((method (eql :get)) (content-type (eql :html)))
-  (let ((login-form (make-instance 'login-form)))
+  (let ((login-form (login-page-form)))
     (render-standard-page (:title "Login")
       (render-widget login-form))))
 
