@@ -34,50 +34,40 @@
     (repository-page-widget username repository :branch ref)))
 
 
+(defgeneric repository-branch-page (method content-type &key username repository branch &allow-other-keys))
 
-(define-rest-handler (repository-home-page
-                      :uri "^/([^/]+)/([^/]+)/?$"
-                      :args (username repository-name))
-    ()
-    (repository-page-widget username repository-name))
-
-
-(define-rest-handler (repository-branch-page
-                      :uri "^/([^/]+)/([^/]+)/branch/([^/]+)/?$"
-                      :args (username repository-name branch))
-    ()
-  (let
-      ((ref (concatenate 'string "refs/heads/" branch)))
-    (repository-page-widget username repository-name :branch ref)))
+(defmethod repository-branch-page ((method (eql :get)) (content-type (eql :html))
+                            &key username repository branch)
+  (let ((ref (concatenate 'string "refs/heads/" branch)))
+    (repository-page-widget username repository :branch ref)))
 
 
-(define-rest-handler (repository-branch-commits-json
-                      :uri "^/([^/]+)/([^/]+)/commits/([^/]+)/?$"
-                      :args (username repository-name branch)
-                      :content-type "application/json")
-    ((ref :parameter-type 'string :request-type :both))
+(defgeneric repository-commits-page (method content-type &key username repository branch &allow-other-keys))
+
+(defmethod repository-commits-page ((method (eql :get)) (content-type (eql :json))
+                                    &key username repository (branch ""))
   (let* ((head-ref (concatenate 'string "refs/heads/" branch))
          (user (car (select-dao 'login (:= 'username username))))
          (repository (car (select-dao
                               'repository (:and
                                            (:= 'owner-id (slot-value user 'id))
-                                           (:= 'name repository-name))))))
+                                           (:= 'name repository))))))
 
     (setf (content-type*) "application/json")
     (with-html-output-to-string (*standard-output*)
-	(with-repository ((repository-real-path repository))
-      (let* ((branches (git-list :reference))
-             (branch (selected-branch repository branches head-ref))
-             (walker (revision-walk (or ref branch))))
-        (with-array ()
-          (dotimes (count 10 t)
-            (let ((commit (git-next walker)))
-              (when (not commit) (return))
-              (let* ((author (git-author commit))
-                     (name (getf author :name))
-                     (email (getf author :email))
-                     (timestamp (getf author :time)))
-                (as-array-member ()
+      (with-repository ((repository-real-path repository))
+        (let* ((branches (git-list :reference))
+               (default-branch (selected-branch repository branches head-ref))
+               (walker (revision-walk (or branch default-branch))))
+          (with-array ()
+            (dotimes (count 10 t)
+              (let ((commit (git-next walker)))
+                (when (not commit) (return))
+                (let* ((author (git-author commit))
+                       (name (getf author :name))
+                       (email (getf author :email))
+                       (timestamp (getf author :time)))
+                  (as-array-member ()
                     (encode-json-alist
                      (eval `(quote
                              (("id" . ,(git-name commit))

@@ -35,12 +35,12 @@
             ("delete" email-delete-page)))
           ("key" 404-page
            (:key-id 404-page
-            ("delete" key-delete-page)))))
-        ;; (:repository repository-home-page
-        ;;  ("key" repository-key-access)
-        ;;  ("branch" repository-branch-page)
-        ;;  ("commits" repository-commits))
-        ))
+            ("delete" key-delete-page))))
+         (:repository repository-page
+          ("key" 404-page
+           (:key-id repository-key-access))
+          ("commits" 404-page
+           (:branch repository-commits-page))))))
 
 (defvar *content-type-list*
   '(("text/html" :html)
@@ -53,6 +53,16 @@
   (dolist (ct (request-accepts request))
     (awhen (content-type-to-symbol ct)
       (return it))))
+
+(defmethod request-accepts ((request request))
+  (let* ((header (cl-ppcre:split ";" (header-in "accept" request)))
+         (content-types (cl-ppcre:split "," (car header)))
+         (options (cdr header)))
+    content-types))
+
+;;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+(defun request-accepts* (&optional (request *request*))
+  (request-accepts request))
 
 
 (defun traverse-path (path &optional (tree *traversal-path*))

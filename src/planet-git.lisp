@@ -30,21 +30,12 @@
   "looks up path relative to whereever this asdf system is installed.  Returns a truename"
   (truename (asdf:system-relative-pathname :planet-git path)))
 
-(setq *rest-handler-alist*
-      (list
-       (list "^/(\\w+)/settings/add-key?$" t "text/html" 'add-ssh-key)
-       (list "^/[^/]+/[^/]+/$" t "text/html" 'repository-home-page)
-       (list "^/[^/]+/[^/]+/key/[^/]+/$" t "text/html" 'repository-key-access)
-       (list "^/[^/]+/[^/]+/branch/[^/]+/$" t "text/html" 'repository-branch-page)
-       (list "^/[^/]+/[^/]+/commits/[^/]+/$" t "application/json" 'repository-branch-commits-json)))
-
 (setq *dispatch-table*
  (list
-  #'dispatch-traverser-handlers
   #'dispatch-easy-handlers
-  #'dispatch-rest-handlers
   (create-prefix-dispatcher "/static/base.css" #'base-css)
-  (create-folder-dispatcher-and-handler "/static/" (resource-path "static"))))
+  (create-folder-dispatcher-and-handler "/static/" (resource-path "static"))
+  #'dispatch-traverser-handlers))
 
 
 ;;; Database
