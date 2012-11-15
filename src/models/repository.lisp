@@ -52,9 +52,39 @@ will not be PUBLIC by default by default."
                         :public public))
       (ensure-git-repository-exist path t))))
 
+(defun is-owner-p (user repository)
+  "test if a user is the owner of a repository."
+  (let ((user (coerce-user user)))
+    (when (and repository user)
+      (eql (slot-value repository 'owner-id)
+             (id user)))))
+
+(defun find-repository (owner name)
+  (let ((user-id (id (coerce-user owner))))
+    (when user-id
+        (car (select-dao
+              'repository (:and
+                           (:= 'owner-id user-id)
+                           (:= 'name name)))))))
+
+(defgeneric has-permission-p (user thing permission))
+
+(defmethod has-permission-p ((user login) (repository repository) (permission (eql :view)))
+  (or (slot-value repository 'public)
+      (is-owner-p user repository)))
+
+(defmethod has-permission-p ((user T) (repository repository) (permission (eql :view)))
+  (slot-value repository 'public))
+
 (defmethod url-for ((repository repository) (action (eql :get)) &key)
   (let ((user (get-dao 'login (slot-value repository 'owner-id))))
     (url-join (slot-value user 'username) (slot-value repository 'name))))
+
+(defmethod url-for ((repository repository) (action (eql :new)) &key (username-or-user (loginp)))
+  (let ((user (if (typep username-or-user 'login)
+                  username-or-user
+                  (car (select-dao 'login (:= 'username username-or-user))))))
+    (url-join (slot-value user 'username) "new")))
 
 (defgeneric repository-real-path (repo)
   (:method ((repo repository))

@@ -102,10 +102,37 @@ and set the primary email address to EMAIL"
                       :primary t))
       login)))
 
+(defun find-user (name)
+  (car (select-dao 'login (:= 'username name))))
+
+(defmethod users-repositories ((user login))
+  (select-dao 'repository (:= 'owner-id (slot-value user 'id))))
+
+(defmethod users-emails ((user login))
+  (select-dao 'email (:= 'user-id (slot-value user 'id))))
+
+(defmethod users-keys ((user login))
+  (select-dao 'key (:= 'user-id (slot-value user 'id))))
+
 (defgeneric user-primary-email (user)
   (:method ((user login))
            (car (select-dao 'email (:and (:= 'user-id (id user))
                                          (:= 'primary t))))))
+
+(defun coerce-user (user-or-name)
+  "turn a USER-OR-NAME into a user object, will return nil if none is
+found."
+  (cond
+    ((typep user-or-name 'login)
+     user-or-name)
+    ((numberp user-or-name)
+     (get-dao 'login user-or-name))
+    ((stringp user-or-name)
+     (find-user user-or-name))
+    ((null user-or-name)
+     nil)
+    (t
+     (error 'type-error :text "Unknown user format."))))
 
 (defmethod encode-json ((user login)
                         &optional (stream *json-output*))

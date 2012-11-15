@@ -209,16 +209,10 @@
 
 (defun repository-page-widget (username repository-name &key branch)
   (let*
-      ((user (car (select-dao 'login (:= 'username username))))
-       (repository (car (select-dao
-                            'repository (:and
-                                         (:= 'owner-id (slot-value user 'id))
-                                         (:= 'name repository-name)))))
-       (visible (when repository (or (slot-value repository 'public)
-                                     (equal (slot-value user 'username)
-                                            (when (loginp) (slot-value (loginp) 'username))))))
-       (is-current-user (when user (equal (slot-value user 'username)
-                                          (when (loginp) (slot-value (loginp) 'username))))))
+      ((user (find-user username))
+       (repository (find-repository user repository-name))
+       (visible (has-permission-p (loginp) repository :view))
+       (is-current-user (is-current-user-p user)))
     (if (and visible user repository)
         (with-repository ((repository-real-path repository))
           (let* ((branches (git-list :reference))

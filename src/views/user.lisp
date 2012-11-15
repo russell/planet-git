@@ -37,13 +37,13 @@
 (defgeneric user-page (method content-type &key username))
 
 (defmethod user-page ((method (eql :get)) (content-type (eql :html)) &key username)
-  (let ((user (car (select-dao 'login (:= 'username username)))))
+  (let ((user (find-user username)))
     (if user
         (let ((username (slot-value user 'username))
               (is-current-user (is-current-user-p user)))
           (render-user-page
               (user :extra-header (user-page-toolbar is-current-user))
-            (let ((repositories (select-dao 'repository (:= 'owner-id (slot-value user 'id)))))
+            (let ((repositories (users-repositories user)))
               (dolist (repo repositories)
                 (let ((visible (or (slot-value repo 'public) is-current-user))
                       (public (repository-public repo)))
@@ -148,11 +148,11 @@ delete button"
 (defgeneric user-settings-page (method content-type &key username))
 
 (defmethod user-settings-page ((method (eql :get)) (content-type (eql :html)) &key username)
-  (let* ((user (car (select-dao 'login (:= 'username username))))
+  (let* ((user (find-user username))
          (is-current-user (is-current-user-p user)))
     (if is-current-user
-        (let ((emails (select-dao 'email (:= 'user-id (id user))))
-              (keys (select-dao 'key (:= 'user-id (id user))))
+        (let ((emails (users-emails user))
+              (keys (users-keys user))
               (user-form (make-instance 'user-form :fullname (slot-value user 'fullname)))
               (email-form (make-instance 'email-form :submit-action "Add"))
               (key-form (make-instance 'key-form :submit-action "Add")))
@@ -160,7 +160,7 @@ delete button"
         (setf (return-code*) +http-forbidden+))))
 
 (defmethod user-settings-page ((method (eql :post)) (content-type (eql :html)) &key username)
-  (let* ((user (car (select-dao 'login (:= 'username username))))
+  (let* ((user (find-user username))
          (is-current-user (is-current-user-p user)))
     (if is-current-user
         (let ((user-form (make-instance 'user-form :fullname (slot-value user 'fullname)))
@@ -181,7 +181,7 @@ delete button"
 
 (defmethod email-delete-page ((method (eql :get)) (content-type T) &key username email-id)
   (let*
-      ((user (car (select-dao 'login (:= 'username username))))
+      ((user (find-user username))
        (is-current-user (is-current-user-p user)))
     (if is-current-user
         (let ((email (car
@@ -195,7 +195,7 @@ delete button"
 
 (defmethod key-delete-page ((method (eql :get)) (content-type T) &key username key-id)
   (let*
-      ((user (car (select-dao 'login (:= 'username username))))
+      ((user (find-user username))
        (is-current-user (is-current-user-p user)))
     (if is-current-user
 	(let ((key (car
